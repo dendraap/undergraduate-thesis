@@ -1,0 +1,15 @@
+darts
+ipykernel
+jupyterlab
+matplotlib
+numpy==1.26.4
+openpyxl
+pandas
+pyyaml
+scipy
+seaborn
+statsmodels
+torch==2.2.2
+tqdm
+optuna
+optuna-integration[pytorch_lightning]

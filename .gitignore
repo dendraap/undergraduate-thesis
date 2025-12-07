@@ -1,0 +1,22 @@
+# Ignore tuned model and environment
+models/checkpoint_tuning_nbeats
+models/checkpoint_tuning_tft
+models/trial_and_error
+models/best_model
+env_3012010008/
+
+# Ignore checkpoint model
+*.ckpt
+*.pth.tar
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore notebook checkpoints
+.ipynb_checkpoints/
+
+# ignore temporary log file
+*.log
+
