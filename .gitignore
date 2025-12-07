@@ -29,5 +29,5 @@ __pycache__/
 # Ignore unused requirements file
 requirements_default.txt
 
-# Ignore folder_structure.md
+# Ignore folder_structure.md file
 folder_structure.md
