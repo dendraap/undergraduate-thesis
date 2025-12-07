@@ -1,9 +1,15 @@
 # Ignore tuned model and environment
-models/checkpoint_tuning_nbeats
-models/checkpoint_tuning_tft
-models/trial_and_error
-models/best_model
+models/checkpoint_tuning_nbeats/*
+models/checkpoint_tuning_tft/*
+models/trial_and_error/*
+models/best_model/*
 env_3012010008/
+
+# Keep .gitkeep to stay push upper folder
+!models/checkpoint_tuning_nbeats/.gitkeep
+!models/checkpoint_tuning_tft/.gitkeep
+!models/trial_and_error/.gitkeep
+!models/best_model/.gitkeep
 
 # Ignore checkpoint model
 *.ckpt
@@ -17,6 +23,11 @@ __pycache__/
 # Ignore notebook checkpoints
 .ipynb_checkpoints/
 
-# ignore temporary log file
+# Ignore temporary log file
 *.log
 
+# Ignore unused requirements file
+requirements_default.txt
+
+# Ignore folder_structure.md
+folder_structure.md
