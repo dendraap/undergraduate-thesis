@@ -23,6 +23,8 @@ def empty_worst_model(
     valid_models = set(df['model_name'].astype(str))
 
     # Get MAPE_sum from excel
+    # Make NaN to float first
+    df['MAPE_sum'] = df['MAPE_sum'].fillna(float('inf'))
     mape_sum = dict(zip(df['model_name'].astype(str), df['MAPE_sum']))
 
     # Iterate through each folder in work_dir
@@ -46,7 +48,7 @@ def empty_worst_model(
         # Model_name found in excel but MAPE_sum > {patience} -> delete model file, keep folder model_name
         elif mape_sum.get(model_name, float('inf')) > patience:
             if print_all:
-                print(f'✅ Deleting (MAPE_sum > 1.4) file/folder in : {model_name}')
+                print(f'✅ Deleting (MAPE_sum > {patience}) file/folder in : {model_name}')
             for item in os.listdir(folder_path):
                 item_path = os.path.join(folder_path, item)
                 if os.path.isfile(item_path):

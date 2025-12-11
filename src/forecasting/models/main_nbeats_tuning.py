@@ -14,7 +14,7 @@ def print_callback(study, trial):
     print(f'\nTrial {trial.number} done ✅')
     print(f'Value: {trial.value}')
     print(f'Params: {trial.params}')
-    print(f'✅ Best so far: {study.best_value} with {study.best_trial.params}\n')
+    print(f'✅ Best so far: {study.best_value} with: \n{study.best_trial.params}\n')
 
 
 if __name__ == "__main__":
@@ -104,12 +104,13 @@ if __name__ == "__main__":
     Y_series_transformed = Y_scaler.fit_transform(Y_series).astype('float32')
     X_series_transformed = X_scaler.fit_transform(X_series).astype('float32')
 
-    # Delete worst model first to save disk C
+    # Delete worst model first to save disk
+    save_path = 'reports/nbeats_tuned_params.xlsx'
     empty_worst_model(
         work_dir   = 'models/checkpoint_tuning_nbeats',
-        excel_path = 'reports/nbeats_params_results.xlsx',
+        excel_path = save_path,
         print_all  = False,
-        patience   = 0.95
+        patience   = 0.0
     )
 
 
@@ -193,9 +194,9 @@ if __name__ == "__main__":
             col_list         = X_num.columns.to_list(),
             col_is_one_hot   = True if len(df_category.columns) > 6 else False,
             custom_checkpoint= True,
-            save_path        = 'reports/nbeats_params_results.xlsx',
+            save_path        = save_path,
             trial            = trial
         ), 
-        n_trials=4000, 
+        n_trials=2520, 
         callbacks=[print_callback]
     )

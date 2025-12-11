@@ -24,7 +24,7 @@ def delete_model_folder(
 
 if __name__ == "__main__":
     model_name = [
-        'optuna_nbeats_ic48_oc12_bs96_st5_bl1_ly2_wd256_dp0.1_lr0.001_encodersFalse_stride12_vl0.2_cov5_onehotTrue_monitorMAPE'
+        'optuna_nbeats_ic216_oc24_bs32_st16_bl1_ly2_wd512_dp0.25_lr1e-05_encodersFalse_stride24_vl0.3_cov5_onehotTrue_monitorMAPE'
     ]
     delete_model_folder(
         work_dir   = 'models/checkpoint_tuning_nbeats/',
