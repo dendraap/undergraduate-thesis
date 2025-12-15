@@ -1,0 +1,33 @@
+{
+    "title": "5 icon ekspresi robot tentang polusi udara",
+    "kategori": {
+        "sehat": {
+            "bentuk": "icon berbentuk wajah robot minimalis, tanpa lengan, tanpa badan. hanya kepala, proporsi wajah bulat, telinga tertutup",
+            "desain": "desain sederhana dengan maksimal 2 warna pilihan, putih dan hitam",
+            "pose": "pose wajah bahagia dengan senyum lebar, mulut terbuka, mata tertutup"
+        },
+        "sedang": {
+            "bentuk": "icon berbentuk wajah robot minimalis, tanpa lengan, tanpa badan. hanya kepala, proporsi wajah bulat, telinga tertutup",
+            "desain": "desain sederhana dengan maksimal 2 warna pilihan, putih dan hitam, mata tertutup",
+            "pose": "pose wajah datar tanpa ekspresi"
+        },
+        "tidak sehat": {
+            "bentuk": "icon berbentuk wajah robot minimalis, tanpa lengan, tanpa badan. hanya kepala, proporsi wajah bulat, telinga tertutup",
+            "desain": "desain sederhana dengan maksimal 2 warna pilihan, putih dan hitam",
+            "pose": "pose wajah sedih, mulut tertutup, mata tertutup"
+        },
+        "sangat tidak sehat": {
+            "bentuk": "icon berbentuk wajah robot minimalis, tanpa lengan, tanpa badan. hanya kepala, proporsi wajah bulat, telinga tertutup",
+            "desain": "desain sederhana dengan maksimal 2 warna pilihan, putih dan hitam",
+            "pose": "pose wajah datar, menggunakan masker, mata tertutup"
+        },
+        "berbahaya": {
+            "bentuk": "icon berbentuk wajah robot minimalis, tanpa lengan, tanpa badan. hanya kepala, proporsi wajah bulat, telinga tertutup",
+            "desain": "desain sederhana dengan maksimal 2 warna pilihan, putih dan hitam",
+            "pose": "pose wajah sedih, menggunakan masker anti racun, mata tertutup"
+        }
+    },
+    "output": {
+        "format": "format gambar .png dengan resolusi tinggi dan 300ppi"
+    }
+}
