@@ -21,7 +21,7 @@ function DailyConsentrationChart() {
     ];
     return (
         <Card sx={{
-            height: '314px',
+            height: '100%',
             padding: '24px',
             borderRadius: '22px',
             boxShadow: 'none',
@@ -41,7 +41,7 @@ function DailyConsentrationChart() {
                 }}/>
             </Stack>
 
-            <Box sx={{ width: '100%', height: 250 }}>
+            <Box sx={{ width: '100%', height: 240 }}>
                 <LineChart
                     series={[{ 
                         data: uData, area: true, showMark: false, color: theme.palette.primary.main }

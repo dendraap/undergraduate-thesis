@@ -52,11 +52,11 @@ function ISPUCard() {
     
     return (
         <Card sx={{
-            height: 'auto', 
+            height: '100%', 
             padding: '24px',
             borderRadius: '22px',
             background: theme.palette.primary.main,
-            color: theme.palette.info.main
+            color: theme.palette.info.main,
         }}>
             <Stack direction='column' spacing={0.4}>
 
