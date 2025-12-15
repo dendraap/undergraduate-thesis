@@ -16,7 +16,7 @@ from optuna.visualization import (
     plot_optimization_history,
     plot_param_importances,
 )
-from darts.utils.likelihood_models import GaussianLikelihood
+from darts.utils.likelihood_models import GaussianLikelihood, QuantileRegression
 from optuna.exceptions import TrialPruned
 from sklearn.model_selection import ParameterSampler
 
