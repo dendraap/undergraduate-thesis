@@ -5,6 +5,7 @@ models/checkpoint_tuning_tft/*
 models/trial_and_error/*
 models/best_model/*
 env_3012010008/
+env_skripsi/
 
 # Keep .gitkeep to stay push upper folder
 !models/checkpoint_tuning_nbeats/.gitkeep
