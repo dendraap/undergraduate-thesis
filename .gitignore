@@ -1,3 +1,4 @@
+# _____________ AI _____________
 # Ignore tuned model and environment
 models/checkpoint_tuning_nbeats/*
 models/checkpoint_tuning_tft/*
@@ -31,3 +32,32 @@ requirements_default.txt
 
 # Ignore folder_structure.md file
 folder_structure.md
+
+# _____________ FRONTEND _____________
+# dependencies
+frontend/node_modules
+frontend/.pnp
+frontend/.pnp.js
+
+# history
+.history/
+frontend/.history
+
+# testing
+frontend/coverage
+
+# production
+frontend/build
+
+# misc
+frontend/.DS_Store
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# _____________ BACKEND _____________
