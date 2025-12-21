@@ -1,5 +1,5 @@
 from src.forecasting.utils.libraries_data_handling import pd, np
-from src.forecasting.utils.libraries_plotting import plt, sd, LinearRegression, sns
+from src.forecasting.utils.libraries_plotting import plt, sd, LinearRegression, sns, norm
 from src.forecasting.utils.memory import cleanup
 from src.forecasting.constants.enums import ColumnGroup, PeriodList
 
@@ -158,10 +158,27 @@ def univariate_analysis(
         if plot_type == 'histplot':
             # Histogram
 
-            ax[i].hist(df[col], bins=plot_kwargs.get('bins', 30), color=color_variant[i])
-            ax[i].set_ylabel('Frequency')
+            ax[i].hist(df[col], bins=plot_kwargs.get('bins', 30), color=color_variant[i], density=True, alpha=0.6)
+
+            mu, sigma = df[col].mean(), df[col].std()
+
+            # Buat range x
+            x = np.linspace(df[col].min(), df[col].max(), 100)
+
+            # Hitung PDF normal
+            pdf = norm.pdf(x, mu, sigma)
+
+            # Plot kurva normal
+            ax[i].plot(x, pdf, 'r-', linewidth=2)
+
+            # Label dan judul
+            ax[i].set_ylabel('Density')
             ax[i].set_xlabel('Value')
-            ax[i].set_title(col_decode[col], fontweight='bold')
+            ax[i].set_title(col_decode.get(col, col), fontweight='bold')
+
+            # ax[i].set_ylabel('Frequency')
+            # ax[i].set_xlabel('Value')
+            # ax[i].set_title(col_decode[col], fontweight='bold')
 
         elif plot_type == 'boxplot':
             # Boxplot

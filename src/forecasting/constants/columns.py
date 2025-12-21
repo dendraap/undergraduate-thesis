@@ -18,7 +18,13 @@ col_encode = {
     "pembagian_waktu/hari"      : "x9",
     "hari_per_minggu"           : "x10",
     "hari_libur_nasional"       : "x11",
-    "musim"                     : "x12"
+    "musim"                     : "x12",
+    "wind direction (sin)"      : "x7_sin",
+    "wind direction (cos)"      : "x7_cos",
+    "rainfall = 0"              : "x4_zero",
+    "rainfall > 0"              : "x4_nonzero",
+    "direct radiation ≤ 5"      : "x8_zero",
+    "direct radiation > 5"      : "x8_nonzero"
 }
 
 # Initialize decode columns name
@@ -41,7 +47,13 @@ col_decode = {
     "x9" : "pembagian_waktu/hari",
     "x10": "hari_per_minggu",
     "x11": "hari_libur_nasional",
-    "x12": "musim"
+    "x12": "musim",
+    "x7_sin": "wind direction (sin)",
+    "x7_cos": "wind direction (cos)",
+    "x4_zero": "rainfall = 0",
+    "x4_nonzero": "rainfall > 0",
+    "x8_zero": "direct radiation ≤ 5",
+    "x8_nonzero": "direct radiation > 5"
 }
 
 # Initialize encoder categorical columns to ordinal ranking

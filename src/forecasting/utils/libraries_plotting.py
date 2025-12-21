@@ -6,4 +6,4 @@ import seaborn as sns
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.linear_model import LinearRegression
 from statsmodels.tsa.seasonal import seasonal_decompose as sd
-from scipy.stats import pearsonr, spearmanr
+from scipy.stats import pearsonr, spearmanr, norm

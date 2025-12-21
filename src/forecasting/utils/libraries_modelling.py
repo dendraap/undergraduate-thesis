@@ -3,6 +3,7 @@ import torch
 from darts import concatenate
 from darts.timeseries import TimeSeries
 from darts.dataprocessing.transformers import Scaler
+from sklearn.preprocessing import MinMaxScaler
 from darts.models import TFTModel, NBEATSModel
 from darts.explainability import TFTExplainer
 from pytorch_lightning.callbacks import Callback, EarlyStopping, ModelCheckpoint
