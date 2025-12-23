@@ -38,7 +38,7 @@ if __name__ == "__main__":
         torch.set_float32_matmul_precision('high')
     
     # Make dir to store results
-    work_dir = 'models/models/checkpoint_tuning_nbeats2/'
+    work_dir = '/models/checkpoint_tuning_nbeats2/'
     os.makedirs(work_dir, exist_ok=True)
 
     # Setting number after coma to max 5 digits

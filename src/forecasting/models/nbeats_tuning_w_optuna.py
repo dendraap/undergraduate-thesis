@@ -303,7 +303,7 @@ def nbeats_tuning_w_optuna(
                 # Evaluate
                 mape_cv = evaluate_cv_timeseries(
                     forecasts  = cv_test,
-                    scaler     = Y_scalers,
+                    scalers    = Y_scalers,
                     df_actual  = Y_actual,
                 )
                     

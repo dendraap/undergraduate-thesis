@@ -5,7 +5,7 @@ from src.forecasting.utils.memory import cleanup
 
 def evaluate_cv_timeseries(
     forecasts  : list[TimeSeries],
-    scalers     : dict,
+    scalers    : dict[str, Scaler],
     df_actual  : pd.DataFrame,
 ) -> dict[str, float]:
     """
