@@ -9,7 +9,7 @@ from src.forecasting.utils.data_split import dataframe_train_valid_test_split
 from src.forecasting.utils.extract_best_epochs import extract_best_epoch_from_checkpoint
 from src.forecasting.models.nbeats_tuning_w_optuna import nbeats_tuning_w_optuna
 from src.forecasting.models.empty_worst_model import empty_worst_model
-
+from src.forecasting.utils.scale_timeseries_per_component import scale_Y_timeseries_per_component, scale_X_timeseries_per_component
 
 def get_targets(df, target_cols=None):
     if target_cols is None:
@@ -38,7 +38,8 @@ if __name__ == "__main__":
         torch.set_float32_matmul_precision('high')
     
     # Make dir to store results
-    os.makedirs('models/checkpoint_tuning_nbeats/', exist_ok=True)
+    work_dir = 'models/models/checkpoint_tuning_nbeats2/'
+    os.makedirs(work_dir, exist_ok=True)
 
     # Setting number after coma to max 5 digits
     np.set_printoptions(suppress=True, precision=5)
@@ -120,18 +121,24 @@ if __name__ == "__main__":
     Y_scalers = {}
     Y_train_transformed = Y_train.copy()
 
-    for col in Y_train.components:
-        scaler = Scaler()
-        Y_scalers[col] = scaler
-        Y_train_transformed[col] = scaler.fit_transform(Y_train[col]).astype('float32')
+    # Normalize Y Train
+    Y_train_transformed, Y_scalers = scale_Y_timeseries_per_component(
+        Y_train, fit=True
+    )
 
     # Transform VALID & TEST
     Y_valid_transformed = Y_valid.copy()
     Y_test_transformed  = Y_test.copy()
 
-    for col in Y_train.components:
-        Y_valid_transformed[col] = Y_scalers[col].transform(Y_valid[col]).astype('float32')
-        Y_test_transformed[col]  = Y_scalers[col].transform(Y_test[col]).astype('float32')
+    # Normalize Y Validation
+    Y_valid_transformed, _ = scale_Y_timeseries_per_component(
+        Y_valid, scalers=Y_scalers, fit=False
+    )
+
+    # Normalize Y Test
+    Y_test_transformed, _ = scale_Y_timeseries_per_component(
+        Y_test, scalers=Y_scalers, fit=False
+    )
 
     # Initialize X Columns to normalize
     x_normalize_cols = ['x1', 'x3', 'x5', 'x6']
@@ -140,18 +147,32 @@ if __name__ == "__main__":
     X_scalers = {}
     X_train_transformed = X_train.copy()
 
-    for col in x_normalize_cols:
-        scaler = Scaler()
-        X_scalers[col] = scaler
-        X_train_transformed[col] = scaler.fit_transform(X_train[col]).astype('float32')
+    # Normalize X Train
+    X_train_transformed, X_scalers = scale_X_timeseries_per_component(
+        ts   = X_train,
+        cols = x_normalize_cols,
+        fit  = True
+    )
 
     # Transform VALID & TEST
     X_valid_transformed = X_valid.copy()
     X_test_transformed  = X_test.copy()
 
-    for col in x_normalize_cols:
-        X_valid_transformed[col] = X_scalers[col].transform(X_valid[col]).astype('float32')
-        X_test_transformed[col]  = X_scalers[col].transform(X_test[col]).astype('float32')
+    # Normalize X Validation
+    X_valid_transformed, _ = scale_X_timeseries_per_component(
+        ts      = X_valid,
+        cols    = x_normalize_cols,
+        scalers = X_scalers,
+        fit     = False
+    )
+
+    # Normalize X Test
+    X_test_transformed, _ = scale_X_timeseries_per_component(
+        ts      = X_test,
+        cols    = x_normalize_cols,
+        scalers = X_scalers,
+        fit     = False
+    )
 
 
     # ========================= DATA MODELLING ========================= #
@@ -176,6 +197,7 @@ if __name__ == "__main__":
             X_col_list       = X.columns.to_list(),
             custom_checkpoint= True,
             save_path        = save_path,
+            work_dir         = work_dir,
             trial            = trial
         ), 
         n_trials=3000, 

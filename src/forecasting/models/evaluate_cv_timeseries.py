@@ -23,8 +23,16 @@ def evaluate_cv_timeseries(
     pred = concatenate(forecasts, axis=0)
 
     # Inverse transform per target
-    for col in pred.components:
-        pred[col] = scalers[col].inverse_transform(pred[col])
+    inv_components = []
+    for col in pred_scaled.components:
+        inv_components.append(
+            scalers[col].inverse_transform(pred[col])
+        )
+
+    pred = concatenate(inv_components, axis=1)
+    
+    # for col in pred.components:
+    #     pred[col] = scalers[col].inverse_transform(pred[col])
 
     # pred = scaler.inverse_transform(pred) ## LAMA
 
@@ -40,7 +48,7 @@ def evaluate_cv_timeseries(
 
         # Avoid NaN results
         try:
-            val = mean_absolute_percentage_error(actual[col], pred[col])
+            val = mean_absolute_percentage_error(actual[col].values, pred[col].values)
             if isinstance(val, float) and math.isnan(val):
                 print('!! MAPE is NAN. Change to 9999')
                 mape_results[col] = 9999

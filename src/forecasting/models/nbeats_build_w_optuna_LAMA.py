@@ -8,10 +8,8 @@ class PatchedPruningCallback(optuna.integration.PyTorchLightningPruningCallback,
     pass
 
 def nbeats_build_w_optuna(
-    Y_train             : TimeSeries,
-    X_train             : TimeSeries,
-    Y_valid             : TimeSeries,
-    X_valid             : TimeSeries,
+    Y                   : TimeSeries,
+    X                   : TimeSeries,
     input_chunk_length  : int,
     output_chunk_length : int,
     n_epochs            : int,
@@ -21,7 +19,8 @@ def nbeats_build_w_optuna(
     num_layers          : int,
     layer_widths        : int,
     dropout             : float,
-    add_encoders        : dict | None,
+    include_encoders    : bool,
+    validation_split    : float,
     model_name          : str,
     work_dir            : str,
     include_stopper     : bool,
@@ -34,33 +33,42 @@ def nbeats_build_w_optuna(
     Function to build Fit of N-BEATS Model with Optuna Tuning Optimization.
 
         Args:
-            Y_train (TimeSeries)       : Train targeted series.
-            X_train (TimeSeries)       : Train covariates series.
-            Y_valid (TimeSeries)       : Validation targeted series.
-            X_valid (TimeSeries)       : Validation covariates series.
-            input_chunk_length (int)   : How many model look to predict.
-            output_chunk_length (int)  : How many model can produce prediction.
-            batch_size (int)           : Number of data points before making update.
-            num_stacks (int)           : Number of stacks in N-BEATS.
-            num_blocks (int)           : Number of blocks of each stacks in N-BEATS.
-            num_layers (int)           : Number of fully connected layers of each blocks in N-BEATS
-            layer_widths (int)         : Number of neuron patterns. Larger -> need more resource.
-            include_encoders (bool)    : Optionally, adding some cyclic covariates ex. (hour, dayofweek, week, etc)
-            dropout (float)            : Dropout probability to be used in fully connected layers.
-            add_encoders (dict | None) : Optionally, adding some cyclic covariates ex. (hour, dayofweek, week, etc)
-            model_name (str)           : The model name to prevent error for same name.
-            work_dir (str)             : Path location to save checkpoints best epochs model.
-            include_stopper (bool)     : Whether to utilize EarlyStopping or not.
-            custom_checkpoint (bool)   : Whether to load default checkpoint or custom checkpoint.
-            lr (float)                 : Learning rate.
-            use_pruner (bool)          : Whether to use pruner collbacks for optuna or not.
+            Y (TimeSeries)            : Targeted variables to predict. 
+            X (TimeSeries)            : Exogenous variables to predict Y.
+            input_chunk_length (int)  : How many model look to predict.
+            output_chunk_length (int) : How many model can produce prediction.
+            batch_size (int)          : Number of data points before making update.
+            num_stacks (int)          : Number of stacks in N-BEATS.
+            num_blocks (int)          : Number of blocks of each stacks in N-BEATS.
+            num_layers (int)          : Number of fully connected layers of each blocks in N-BEATS
+            layer_widths (int)        : Number of neuron patterns. Larger -> need more resource.
+            include_encoders (bool)   : Optionally, adding some cyclic covariates ex. (hour, dayofweek, week, etc)
+            dropout (float)           : Dropout probability to be used in fully connected layers.
+            validation_split (float)  : To split data input into train and validation to monitor val_loss.
+            model_name (str)          : The model name to prevent error for same name.
+            work_dir (str)            : Path location to save checkpoints best epochs model.
+            include_stopper (bool)    : Whether to utilize EarlyStopping or not.
+            custom_checkpoint (bool)  : Whether to load default checkpoint or custom checkpoint.
+            lr (float)                : Learning rate.
+            use_pruner (bool)         : Whether to use pruner collbacks for optuna or not.
 
         Returns:
             NBEATSModel : This function return the model configuration.
     """
 
+    # Split
+    Y_fit, Y_val = timeseries_train_test_split(Y, test_size=validation_split)
+    X_fit, X_val = timeseries_train_test_split(X, test_size=validation_split)
+
     # Initialize TorchMetrics, used as the monitor
     torch_metrics = MeanAbsolutePercentageError()
+
+    # Check if include encoders or not
+    add_encoders = None
+    if include_encoders:
+        add_encoders = {
+            'cyclic': {'past': ['hour', 'day','dayofweek', 'dayofyear', 'week', 'weekday', 'weekofyear', 'month', 'quarter']}
+        }
 
     # pl_trainer_kwargs setup
     pl_trainer_kwargs = {}
@@ -132,15 +140,15 @@ def nbeats_build_w_optuna(
         work_dir            = work_dir,
         log_tensorboard     = True,
         save_checkpoints    = True,   # Enable Darts default checkpoint (_model.pth.tar)
-        add_encoders        = add_encoders
+        add_encoders        = add_encoders if include_encoders else None
     )
 
     # Fit model
     model.fit(
-        series              = Y_train,
-        past_covariates     = X_train,
-        val_series          = Y_valid,
-        val_past_covariates = X_valid,
+        series              = Y_fit,
+        past_covariates     = X_fit,
+        val_series          = Y_val,
+        val_past_covariates = X_val,
         load_best           = True,
         stride              = 1,
         dataloader_kwargs   = {'num_workers': num_workers},

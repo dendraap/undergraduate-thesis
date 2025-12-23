@@ -1,7 +1,7 @@
 from src.forecasting.utils.libraries_data_handling import np, pd, math
 from src.forecasting.utils.libraries_others import os, re, time, json, psutil, shutil, datetime
 from src.forecasting.utils.data_split import timeseries_train_test_split
-from src.forecasting.utils.libraries_modelling import torch, concatenate, get_timestamp_at_point, TimeSeries, Scaler, NBEATSModel, Callback, EarlyStopping, ModelCheckpoint, optuna, PyTorchLightningPruningCallback, Trial, plot_contour, plot_optimization_history, plot_param_importances, GaussianLikelihood, TrialPruned, ParameterSampler, MeanAbsolutePercentageError, mean_absolute_percentage_error
+from src.forecasting.utils.libraries_modelling import torch, concatenate, TimeSeries, Scaler, NBEATSModel, Callback, EarlyStopping, ModelCheckpoint, optuna, PyTorchLightningPruningCallback, Trial, plot_contour, plot_optimization_history, plot_param_importances, GaussianLikelihood, TrialPruned, ParameterSampler, MeanAbsolutePercentageError, mean_absolute_percentage_error
 from src.forecasting.utils.extract_checkpoint_result import extract_checkpoint_results
 from src.forecasting.utils.memory import cleanup
 from src.forecasting.constants.enums import PeriodList
@@ -26,6 +26,7 @@ def nbeats_tuning_w_optuna(
     X_col_list        : list,
     custom_checkpoint : bool,
     save_path         : str,
+    work_dir          : str,
     trial             : Trial
 ) -> float: 
     """
@@ -46,6 +47,7 @@ def nbeats_tuning_w_optuna(
         X_col_list (list)                   : List of covariates columns used.
         custom_checkpoint (bool)            : Whether to load default checkpoint or custom checkpoint.
         save_path (str)                     : Path location to save tuning results as xlsx.
+        work_dir (str)                      : Working directory to store tuning folder.
         trial (Trial)                       : An Optuna class object.
 
     Returns:
@@ -134,7 +136,6 @@ def nbeats_tuning_w_optuna(
         f'_wd{layer_widths}_dp{dropout}_lr{lr}_encoders{add_encoders}_stride{output_chunk_length}'
         f'_vl{validation_split}_Ycol{len(Y_col_list)}_Xcol{len(X_col_list)}_monitorMAPE'
     )
-    work_dir = 'models/checkpoint_tuning_nbeats/'
     folder_path = os.path.join(work_dir, model_name)
 
     # Initialize some variable for storing to excel
@@ -266,7 +267,7 @@ def nbeats_tuning_w_optuna(
                     num_layers          = num_layers,
                     layer_widths        = layer_widths,
                     dropout             = dropout,
-                    include_encoders    = add_encoders,
+                    add_encoders        = add_encoders,
                     model_name          = model_name,
                     work_dir            = work_dir,
                     include_stopper     = True,
