@@ -5,10 +5,23 @@ from src.forecasting.utils.libraries_modelling import torch, concatenate, TimeSe
 from src.forecasting.constants.columns import col_decode, col_encode
 from src.forecasting.utils.memory import cleanup
 from src.forecasting.constants.enums import ColumnGroup, PeriodList
-from src.forecasting.utils.data_split import dataframe_train_test_split, dataframe_train_test_split, timeseries_train_test_split
+from src.forecasting.utils.data_split import dataframe_train_valid_test_split
 from src.forecasting.utils.extract_best_epochs import extract_best_epoch_from_checkpoint
 from src.forecasting.models.nbeats_tuning_w_optuna import nbeats_tuning_w_optuna
 from src.forecasting.models.empty_worst_model import empty_worst_model
+
+
+def get_targets(df, target_cols=None):
+    if target_cols is None:
+        target_cols = ['y1', 'y2', 'y3', 'y4', 'y5', 'y6']
+    available = [col for col in target_cols if col in df.columns]
+    return df[available].astype('float32')
+
+def get_features(df, target_cols=None):
+    if target_cols is None:
+        target_cols = ['y1','y2','y3','y4','y5','y6']
+    available_targets = [col for col in target_cols if col in df.columns]
+    return df.drop(columns=available_targets).astype('float32')
 
 def print_callback(study, trial):
     print(f'\nTrial {trial.number} done ✅')
@@ -33,9 +46,28 @@ if __name__ == "__main__":
 
     # ========================= LOAD DATASET ========================= #
     # Load xlsx dataset
-    df_past     = pd.read_csv('data/processed/past_covariates_nonoutliers_with_pre_normalization.csv')
-    df_category = pd.read_csv('data/processed/future_covariates_one_hot_encoding.csv')
-    # df_category = pd.read_csv('data/processed/future_covariates.csv')
+    ## CHANGE NUMBER BELOW FOR CHOOSE THE DATASET ##
+    dataset_used = 1
+    ## CHANGE NUMBER ABOVE FOR CHOOSE THE DATASET ## 
+
+    df_past = None
+    dataset_type = None
+    if dataset_used == 1:
+        dataset_type = 'sqrt'
+        df_past = pd.read_csv('data/processed/past_covariates_sqrt_transform.csv')
+    elif dataset_used == 2:
+        dataset_type = 'sqrt_NoOzon'
+        df_past = pd.read_csv('data/processed/past_covariates_sqrt_transform_NoOzon.csv')
+    elif dataset_used == 3:
+        dataset_type = 'log1p'
+        df_past = pd.read_csv('data/processed/past_covariates_log_transform.csv')
+    elif dataset_used == 4:
+        dataset_type = 'log1p_NoOzon'
+        df_past = pd.read_csv('data/processed/past_covariates_log_transform_NoOzon.csv')
+    else:
+        dataset_type = 'default'
+        df_past = pd.read_csv('data/processed/past_covariates.csv')
+
 
 
     # ========================= DATA PREPROCESSING ========================= #
@@ -45,158 +77,107 @@ if __name__ == "__main__":
     # Set index
     df_past = df_past.set_index('t').asfreq('h')
 
-    # Convert timestamp to datatime
-    df_category['t'] = pd.to_datetime(df_category['t'], format='%Y-%m-%d %H:%M:%S')
-
-    # Set index
-    df_category = df_category.set_index('t').asfreq('h')
-
-    # Cut categorical data end time to match with df_past
-    df_category = df_category.iloc[:len(df_past)]
-
 
     ## ========================= LOAD CORRELATION RESULTS ========================= ##
     # Load correlation results
     results_r = pd.read_csv('data/processed/correlation_scores.csv')
 
-    # Preparing feature selection input
-    X_num = df_past[df_past.columns[ColumnGroup.TARGET:]]
-
     # Take very low correlation level (0.00 - 0.199) to drop
-    X_num_drop = results_r[results_r['Correlation'] <= 0.2]['Feature'].to_list()
+    dropped_covariates = results_r[results_r['Correlation'] <= 0.2]['Feature'].to_list()
 
     # Encode drop colomns name
-    X_num_drop = [col_encode[feature] for feature in X_num_drop]
-
-    # Drop columns
-    X_num = X_num.drop(columns=X_num_drop)
+    dropped_covariates = [col_encode[feature] for feature in dropped_covariates]
 
     ## ========================= DATA SPLIT ========================= ##
     # Split dataset into Y and X
-    Y = df_past[df_past.columns[:ColumnGroup.TARGET]].astype('float32')
-    X = pd.concat([X_num, df_category], axis=1).astype('float32')
+    # Drop low correlation columns.
+    # df_past = df_past.drop(columns=[dropped_covariates]) # KEEP FOR DO DROP OR COMMEND IF WON'T DROP
+    Y = get_targets(df_past)
+    X = get_features(df_past)
 
-    # Split to data train 80% and test 20%
-    Y_train, Y_test = dataframe_train_test_split(Y, test_size=0.1)
-    X_train, X_test = dataframe_train_test_split(X, test_size=0.1)
+    # Split to data train and test
+    valid_size = 0.2
+    test_size  = 0.1
+    Y_train, Y_valid, Y_test = dataframe_train_valid_test_split(
+        Y, valid_size=valid_size, test_size=test_size
+    )
+
+    X_train, X_valid, X_test = dataframe_train_valid_test_split(
+        X, valid_size=valid_size, test_size=test_size
+    )
 
     # Change to TimeSeries Dataset
     Y_train = TimeSeries.from_dataframe(Y_train, value_cols=Y_train.columns.tolist(), freq='h').astype('float32')
     X_train = TimeSeries.from_dataframe(X_train, value_cols=X_train.columns.tolist(), freq='h').astype('float32')
+    Y_valid = TimeSeries.from_dataframe(Y_valid, value_cols=Y_valid.columns.tolist(), freq='h').astype('float32')
+    X_valid = TimeSeries.from_dataframe(X_valid, value_cols=X_valid.columns.tolist(), freq='h').astype('float32')
     Y_test  = TimeSeries.from_dataframe(Y_test, value_cols=Y_test.columns.tolist(), freq='h').astype('float32')
     X_test  = TimeSeries.from_dataframe(X_test, value_cols=X_test.columns.tolist(), freq='h').astype('float32')
 
-    # Change unsplitted feature for inference
-    Y_series = TimeSeries.from_dataframe(Y, value_cols=Y.columns.tolist(), freq='h').astype('float32')
-    X_series = TimeSeries.from_dataframe(X, value_cols=X.columns.tolist(), freq='h').astype('float32')
-
 
     ## ========================= NORMALIZATION ========================= ##
-    # Preparing the Scalers
-    Y_scaler = Scaler()
-    X_scaler = Scaler()
+    # Initialize Y scalers
+    Y_scalers = {}
+    Y_train_transformed = Y_train.copy()
 
-    # Normalize data
-    Y_train_transformed  = Y_scaler.fit_transform(Y_train).astype('float32')
-    X_train_transformed  = X_scaler.fit_transform(X_train).astype('float32')
+    for col in Y_train.components:
+        scaler = Scaler()
+        Y_scalers[col] = scaler
+        Y_train_transformed[col] = scaler.fit_transform(Y_train[col]).astype('float32')
 
-    # Normalize data for inference
-    Y_series_transformed = Y_scaler.fit_transform(Y_series).astype('float32')
-    X_series_transformed = X_scaler.fit_transform(X_series).astype('float32')
+    # Transform VALID & TEST
+    Y_valid_transformed = Y_valid.copy()
+    Y_test_transformed  = Y_test.copy()
 
-    # Delete worst model first to save disk
-    save_path = 'reports/nbeats_tuned_params.xlsx'
-    empty_worst_model(
-        work_dir   = 'models/checkpoint_tuning_nbeats',
-        excel_path = save_path,
-        print_all  = False,
-        patience   = 0.0
-    )
+    for col in Y_train.components:
+        Y_valid_transformed[col] = Y_scalers[col].transform(Y_valid[col]).astype('float32')
+        Y_test_transformed[col]  = Y_scalers[col].transform(Y_test[col]).astype('float32')
+
+    # Initialize X Columns to normalize
+    x_normalize_cols = ['x1', 'x3', 'x5', 'x6']
+
+    # Initialize X scalers
+    X_scalers = {}
+    X_train_transformed = X_train.copy()
+
+    for col in x_normalize_cols:
+        scaler = Scaler()
+        X_scalers[col] = scaler
+        X_train_transformed[col] = scaler.fit_transform(X_train[col]).astype('float32')
+
+    # Transform VALID & TEST
+    X_valid_transformed = X_valid.copy()
+    X_test_transformed  = X_test.copy()
+
+    for col in x_normalize_cols:
+        X_valid_transformed[col] = X_scalers[col].transform(X_valid[col]).astype('float32')
+        X_test_transformed[col]  = X_scalers[col].transform(X_test[col]).astype('float32')
 
 
     # ========================= DATA MODELLING ========================= #
-    # Initialize parameter grid possibilites
-
-    # Initialize ParameterSampler combination
-    # params_grid = {
-    #     'input_chunk_length' : [int(PeriodList.W1), int(PeriodList.D1 * 10), int(PeriodList.W1 * 2)],
-    #     'output_chunk_length': [int(PeriodList.D1), int(PeriodList.D1 * 2)],
-    #     'batch_size'         : [32, 64, 96],
-    #     'num_stacks'         : [10, 20, 30],
-    #     'num_blocks'         : [1, 2, 4],
-    #     'num_layers'         : [2, 4, 6],
-    #     'layer_widths'       : [256, 512],
-    #     'dropout'            : [0.2],
-    #     'add_encoders'       : [True],
-    #     'stride'             : [3]
-    # }
-
-    # This is for experiments 1
-    # params_grid = {
-    #     'input_chunk_length' : [264],
-    #     'output_chunk_length': [24],
-    #     'batch_size'         : [96],
-    #     'num_stacks'         : [20],
-    #     'num_blocks'         : [2],
-    #     'num_layers'         : [4],
-    #     'layer_widths'       : [512],
-    #     'dropout'            : [0.2],
-    #     'add_encoders'       : [True],
-    #     'stride'             : [24]
-    # }
-
-    # This is for experiments 2
-    # params_grid = {
-    #     'input_chunk_length' : [
-    #         int(PeriodList.D1 * 13), int(PeriodList.D1 * 12), int(PeriodList.D1 * 11), int(PeriodList.D1 * 10), 
-    #         int(PeriodList.D1 * 9),  int(PeriodList.D1 * 8), int(PeriodList.W1)
-    #     ],
-    #     'output_chunk_length': [int(PeriodList.D1)],
-    #     'batch_size'         : [96, 64, 32],
-    #     'num_stacks'         : [30, 20, 10, 5],
-    #     'num_blocks'         : [1, 2, 4],
-    #     'num_layers'         : [2, 4],
-    #     'layer_widths'       : [256, 512],
-    #     'dropout'            : [0.2],
-    #     'add_encoders'       : [True],
-    #     'stride'             : [24]
-    # }
-
-    # Change this value for experimental purpose
-    # n_iter = 1500
-
-    # Tuning using ParameterSampler
-    # tuning_results = nbeats_tuning(
-    #     Y                = Y_train_transformed,
-    #     X                = X_train_transformed,
-    #     Y_actual         = Y,
-    #     Y_scaler         = Y_scaler,
-    #     pre_normalization= True,
-    #     max_epochs       = 100,
-    #     params_grid      = params_grid,
-    #     n_iter           = n_iter,
-    #     col_list         = X_num.columns.to_list(),
-    #     col_is_one_hot   = True if len(df_category.columns) > 6 else False,
-    #     custom_checkpoint= True,
-    #     save_path        = 'reports/nbeats_params_results.xlsx'
-    # )
+    # Excel save location
+    save_path  = 'reports/nbeats_tuned_params_optimized.xlsx'
 
     # Tuning using Optuna
     study_nbeats = optuna.create_study(direction='minimize')
     study_nbeats.optimize(
         lambda trial: nbeats_tuning_w_optuna(
-            Y                = Y_train_transformed,
-            X                = X_train_transformed,
-            Y_actual         = Y,
-            Y_scaler         = Y_scaler,
-            pre_normalization= True,
+            dataset_type     = dataset_type,
+            Y_train          = Y_train_transformed,
+            X_train          = X_train_transformed,
+            Y_valid          = Y_valid_transformed,
+            X_valid          = X_valid_transformed,
+            Y_scalers        = Y_scalers,
+            X_scalers        = X_scalers,
+            Y_actual         = Y[:Y_valid.end_time()],
+            validation_split = valid_size,
             max_epochs       = 150,
-            col_list         = X_num.columns.to_list(),
-            col_is_one_hot   = True if len(df_category.columns) > 6 else False,
+            Y_col_list       = Y.columns.to_list(),
+            X_col_list       = X.columns.to_list(),
             custom_checkpoint= True,
             save_path        = save_path,
             trial            = trial
         ), 
-        n_trials=2520, 
+        n_trials=3000, 
         callbacks=[print_callback]
     )

@@ -5,7 +5,7 @@ from src.forecasting.utils.memory import cleanup
 
 def evaluate_cv_timeseries(
     forecasts  : list[TimeSeries],
-    scaler     : Scaler,
+    scalers     : dict,
     df_actual  : pd.DataFrame,
 ) -> dict[str, float]:
     """
@@ -22,8 +22,11 @@ def evaluate_cv_timeseries(
     # Merge all forecast results
     pred = concatenate(forecasts, axis=0)
 
-    # Inverse transform
-    pred = scaler.inverse_transform(pred)
+    # Inverse transform per target
+    for col in pred.components:
+        pred[col] = scalers[col].inverse_transform(pred[col])
+
+    # pred = scaler.inverse_transform(pred) ## LAMA
 
     # Extact actual and prediction
     start  = pred.start_time()

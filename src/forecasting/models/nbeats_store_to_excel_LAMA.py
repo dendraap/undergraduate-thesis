@@ -6,7 +6,7 @@ def nbeats_store_to_excel(
     model_name          : str,
     work_dir            : str,
     GPU                 : bool,
-    dataset_type        : str,
+    pre_normalization   : bool,
     input_chunk_length  : int,
     output_chunk_length : int,
     batch_size          : int,
@@ -18,10 +18,8 @@ def nbeats_store_to_excel(
     lr                  : float,
     random_state        : int,
     validation_split    : float,
-    Y_cols              : list,
-    Y_scalers           : dict,
-    X_cols              : list,
-    X_scalers           : dict,
+    col_list            : list,
+    col_is_one_hot      : bool,
     add_encoders        : bool,
     custom_checkpoint   : bool,
     status              : str,
@@ -42,7 +40,7 @@ def nbeats_store_to_excel(
         model_name (str)                : Model name.
         work_dir (str)                  : Main dictionary of model name.
         GPU (bool)                      : Whether GPU is used or not.
-        dataset_type (str)              : Type of dataset used (i.e. sqrt, sqrt_NoOzon, log1p, log1p_NoOzon, or without optimized dataset, default).
+        pre_normalization (bool)        : Whether is used pre-normalization data or not.
         input_chunk_length (int)        : Number of input chunk length used.
         output_chunk_length (int)       : Number of output chunk length used.
         batch_size (int)                : Number of batch size used.
@@ -54,10 +52,8 @@ def nbeats_store_to_excel(
         lr (float)                      : Number of learning rate used.
         random_state (int)              : Number of random state used.
         validation_split (float)        : Proportion of validation split used.
-        Y_col_list (list)               : List of targeted columns used.
-        Y_scalers (dict)                : List of scaler of each targeted series.
-        X_col_list (list)               : List of covariates columns used.
-        X_scalers (dict)                : List of scaler of each covariates series.
+        col_list (list)                 : Covariates used.
+        col_is_one_hot (bool)           : Whether categorical used is one hot encoding or not.
         add_encoders (bool)             : Whether add encoders is used or not.
         custom_checkpoint (bool)        : Whether use custom checkpoint or not.
         status (str)                    : Model status when tuned (SUCCESS, PRUNED, or OOM SKIPPED).
@@ -81,7 +77,7 @@ def nbeats_store_to_excel(
         'GPU'                : True if GPU else False,
         'ram_usage_MB'       : ram_usage_MB,
         'fit_cost_seconds'   : fit_cost_seconds,
-        'dataset_type'       : dataset_type,
+        'pre-normalization'  : pre_normalization,
         'input_chunk_length' : input_chunk_length,
         'output_chunk_length': output_chunk_length,
         'n_epochs'           : best_epoch,
@@ -95,17 +91,15 @@ def nbeats_store_to_excel(
         'random_state'       : random_state,
         'validation_split'   : validation_split,
         'stride'             : output_chunk_length,
-        'Y_col_list'         : Y_cols,
-        'Y_scalers'          : json.dumps(Y_scalers),
-        'X_col_list'         : X_cols,
-        'X_scalers'          : json.dumps(X_scalers),
-        'add_encoders'       : json.dumps(add_encoders) if add_encoders else None
+        'covariates'         : json.dumps(col_list),
+        'one_hot_encoding'   : col_is_one_hot,
+        'add_encoders'       : json.dumps({'cyclic': {'past': ['hour', 'day','dayofweek', 'dayofyear', 'week', 'weekday', 'weekofyear', 'month', 'quarter']}}) if add_encoders else None
     }
 
     # EarlyStopping config to store in results
     early_stopping_config = {
         'monitor'  : 'val_MeanAbsolutePercentageError',
-        'patience' : 5,
+        'patience' : 8,
         'min_delta': 0.01,
         'mode'     : 'min'
     }

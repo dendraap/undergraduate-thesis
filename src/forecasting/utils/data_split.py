@@ -1,6 +1,35 @@
 from src.forecasting.utils.libraries_data_handling import pd
 from src.forecasting.utils.libraries_modelling import TimeSeries
 
+
+def dataframe_train_valid_test_split(
+    df          : pd.DataFrame,
+    valid_size  : float,
+    test_size   : float
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """
+    Split dataframe into train, validation, and test (time-ordered).
+
+    Args:
+        df (pd.DataFrame)   : Input dataframe (time-ordered).
+        valid_size (float) : Validation size (decimal).
+        test_size (float)  : Test size (decimal).
+
+    Returns:
+        train, valid, test
+    """
+
+    n = len(df)
+
+    train_end = int(n * (1 - valid_size - test_size))
+    valid_end = int(n * (1 - test_size))
+
+    train = df.iloc[:train_end]
+    valid = df.iloc[train_end:valid_end]
+    test  = df.iloc[valid_end:]
+
+    return train, valid, test
+
 def dataframe_train_test_split(
     df        : pd.DataFrame,
     test_size : float
@@ -20,6 +49,34 @@ def dataframe_train_test_split(
     split = int(n * (1 - test_size))
 
     return df.iloc[:split], df.iloc[split:]
+
+def timeseries_train_valid_test_split(
+    ts          : TimeSeries,
+    valid_size  : float,
+    test_size   : float
+) -> tuple[TimeSeries, TimeSeries, TimeSeries]:
+    """
+    Function to split timeseries dataset into train, validation, and test.
+
+    Args:
+        df (pd.DataFrame)   : Input dataframe (time-ordered).
+        valid_size (float) : Validation size (decimal).
+        test_size (float)  : Test size (decimal).
+
+    Returns:
+        train, valid, test
+    """
+
+    n = len(ts)
+
+    train_end = int(n * (1 - valid_size - test_size))
+    valid_end = int(n * (1 - test_size))
+
+    train = ts[:train_end]
+    valid = ts[train_end:valid_end]
+    test  = ts[valid_end:]
+
+    return train, valid, test
 
 
 def timeseries_train_test_split(
