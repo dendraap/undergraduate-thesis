@@ -53,20 +53,26 @@ if __name__ == "__main__":
 
     df_past = None
     dataset_type = None
+    prenorm_type = None
     if dataset_used == 1:
         dataset_type = 'sqrt'
+        prenorm_type = 'sqrt'
         df_past = pd.read_csv('data/processed/past_covariates_sqrt_transform.csv')
     elif dataset_used == 2:
         dataset_type = 'sqrt_NoOzon'
+        prenorm_type = 'sqrt'
         df_past = pd.read_csv('data/processed/past_covariates_sqrt_transform_NoOzon.csv')
     elif dataset_used == 3:
         dataset_type = 'log1p'
+        prenorm_type = 'log1p'
         df_past = pd.read_csv('data/processed/past_covariates_log_transform.csv')
     elif dataset_used == 4:
         dataset_type = 'log1p_NoOzon'
+        prenorm_type = 'log1p'
         df_past = pd.read_csv('data/processed/past_covariates_log_transform_NoOzon.csv')
     else:
         dataset_type = 'default'
+        prenorm_type = None
         df_past = pd.read_csv('data/processed/past_covariates.csv')
 
 
@@ -184,6 +190,7 @@ if __name__ == "__main__":
     study_nbeats.optimize(
         lambda trial: nbeats_tuning_w_optuna(
             dataset_type     = dataset_type,
+            prenorm_type     = prenorm_type,
             Y_train          = Y_train_transformed,
             X_train          = X_train_transformed,
             Y_valid          = Y_valid_transformed,

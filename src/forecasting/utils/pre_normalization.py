@@ -84,7 +84,7 @@ def log1p_transform_inverse(
 
     # Iterate through selected columns to inverse transform
     for col in cols:
-        df[col] = np.log1p(df[col])
+        df[col] = np.expm1(df[col])
     return df
 
 def minmax_transform(

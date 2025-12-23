@@ -13,6 +13,7 @@ from src.forecasting.models.nbeats_store_to_excel import nbeats_store_to_excel
 
 def nbeats_tuning_w_optuna(
     dataset_type      : str,
+    prenorm_type      : str,
     Y_train           : TimeSeries,
     X_train           : TimeSeries,
     Y_valid           : TimeSeries,
@@ -34,6 +35,7 @@ def nbeats_tuning_w_optuna(
 
     Args:
         dataset_type (str)                  : Type of dataset used (i.e. sqrt, sqrt_NoOzon, log1p, log1p_NoOzon, or without optimized dataset, default).
+        prenorm (str)                       : Type prenormalization used to inverse transform.
         Y_train (TimeSeries)                : Train targeted series.
         X_train (TimeSeries)                : Train covariates series.
         Y_valid (TimeSeries)                : Validation targeted series.
@@ -302,9 +304,10 @@ def nbeats_tuning_w_optuna(
             
                 # Evaluate
                 mape_cv = evaluate_cv_timeseries(
-                    forecasts  = cv_test,
-                    scalers    = Y_scalers,
-                    df_actual  = Y_actual,
+                    forecasts    = cv_test,
+                    scalers      = Y_scalers,
+                    df_actual    = Y_actual,
+                    prenorm_type = prenorm_type
                 )
                     
                 # Save MAPE results
