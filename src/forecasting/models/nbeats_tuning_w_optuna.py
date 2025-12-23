@@ -133,7 +133,7 @@ def nbeats_tuning_w_optuna(
     model_name = (
         f'optuna_nbeats_type{dataset_type}_ic{input_chunk_length}_oc{output_chunk_length}_bs{batch_size}'
         f'_st{num_stacks}_bl{num_blocks}_ly{num_layers}'
-        f'_wd{layer_widths}_dp{dropout}_lr{lr}_encoders{add_encoders}_stride{output_chunk_length}'
+        f'_wd{layer_widths}_dp{dropout}_lr{lr}_encoders{enc_key}_stride{output_chunk_length}'
         f'_vl{validation_split}_Ycol{len(Y_col_list)}_Xcol{len(X_col_list)}_monitorMAPE'
     )
     folder_path = os.path.join(work_dir, model_name)
