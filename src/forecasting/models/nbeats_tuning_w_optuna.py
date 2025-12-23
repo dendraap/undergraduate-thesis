@@ -150,12 +150,12 @@ def nbeats_tuning_w_optuna(
     else:
         # Create new excel file
         columns = [
-            'timestamp', 'MAPE_sum', 'MAPE_y1','MAPE_y2', 'MAPE_y3', 'MAPE_y4', 'MAPE_y6', 
+            'timestamp', 'MAPE_sum', 'MAPE_y1','MAPE_y2', 'MAPE_y3', 'MAPE_y4', 'MAPE_y5', 'MAPE_y6', 
             'val_MAPE', 'val_loss', 'status', 'model_name', 'GPU', 'ram_usage_MB', 
             'fit_cost_seconds', 'dataset_type', 'input_chunk_length', 'output_chunk_length',
             'n_epochs', 'batch_size', 'num_stacks', 'num_blocks', 'num_layers',
             'layer_widths', 'dropout', 'lr', 'random_state', 'validation_split',
-            'stride', 'Y_cols', 'X_cols', 'Y_scalers', 'X_scalers', 'add_encoders',
+            'stride', 'Y_col_list', 'X_col_list', 'Y_scalers', 'X_scalers', 'add_encoders',
             'early_stopping', 'checkpoint_config', 'trainer_config'
         ]
         df_empty = pd.DataFrame(columns=columns)
@@ -222,8 +222,8 @@ def nbeats_tuning_w_optuna(
                     lr                  = lr,
                     random_state        = random_state,
                     validation_split    = validation_split,
-                    Y_cols              = Y_col_list,
-                    X_cols              = X_col_list,
+                    Y_col_list          = Y_col_list,
+                    X_col_list          = X_col_list,
                     Y_scalers           = Y_scalers,
                     X_scalers           = X_scalers,
                     add_encoders        = add_encoders,
@@ -235,7 +235,7 @@ def nbeats_tuning_w_optuna(
 
                 # Clean up disk
                 empty_worst_model(
-                    work_dir   = 'models/checkpoint_tuning_nbeats',
+                    work_dir   = work_dir,
                     excel_path = save_path,
                     print_all  = False,
                     patience   = 0.0
@@ -339,8 +339,8 @@ def nbeats_tuning_w_optuna(
                     lr                  = lr,
                     random_state        = random_state,
                     validation_split    = validation_split,
-                    Y_cols              = Y_col_list,
-                    X_cols              = X_col_list,
+                    Y_col_list          = Y_col_list,
+                    X_col_list          = X_col_list,
                     Y_scalers           = Y_scalers,
                     X_scalers           = X_scalers,
                     add_encoders        = add_encoders,
@@ -359,7 +359,7 @@ def nbeats_tuning_w_optuna(
             
                 # Clean up disk
                 empty_worst_model(
-                    work_dir   = 'models/checkpoint_tuning_nbeats',
+                    work_dir   = work_dir,
                     excel_path = save_path,
                     print_all  = False,
                     patience   = 0.0
@@ -393,8 +393,8 @@ def nbeats_tuning_w_optuna(
                     lr                  = lr,
                     random_state        = random_state,
                     validation_split    = validation_split,
-                    Y_cols              = Y_col_list,
-                    X_cols              = X_col_list,
+                    Y_col_list          = Y_col_list,
+                    X_col_list          = X_col_list,
                     Y_scalers           = Y_scalers,
                     X_scalers           = X_scalers,
                     add_encoders        = add_encoders,
@@ -406,7 +406,7 @@ def nbeats_tuning_w_optuna(
 
                 # Clean up disk
                 empty_worst_model(
-                    work_dir   = 'models/checkpoint_tuning_nbeats',
+                    work_dir   = work_dir,
                     excel_path = save_path,
                     print_all  = False,
                     patience   = 0.0

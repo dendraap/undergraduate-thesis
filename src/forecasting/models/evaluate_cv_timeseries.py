@@ -24,7 +24,7 @@ def evaluate_cv_timeseries(
 
     # Inverse transform per target
     inv_components = []
-    for col in pred_scaled.components:
+    for col in pred.components:
         inv_components.append(
             scalers[col].inverse_transform(pred[col])
         )

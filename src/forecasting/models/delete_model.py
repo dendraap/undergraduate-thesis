@@ -24,9 +24,10 @@ def delete_model_folder(
 
 if __name__ == "__main__":
     model_name = [
-        'optuna_tft_ic24_oc24_bs96_hs32_ll1_nah2_dp0.15_lr1e-05_encodersenc2_stride24_vl0.3_cov5_onehotTrue_monitorMAPE'
+        'optuna_nbeats_typesqrt_ic72_oc24_bs96_st21_bl4_ly4_wd64_dp0.35_lr5e-05_encodersenc0_stride24_vl0.2_Ycol6_Xcol11_monitorMAPE',
+        
     ]
     delete_model_folder(
-        work_dir   = 'models/checkpoint_tuning_tft/',
+        work_dir   = 'models/checkpoint_tuning_nbeats2/',
         model_name = model_name
     )
