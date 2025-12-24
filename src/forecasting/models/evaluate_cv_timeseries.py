@@ -1,8 +1,7 @@
 from src.forecasting.utils.libraries_data_handling import np, pd, math
 from src.forecasting.utils.data_split import timeseries_train_test_split
-from src.forecasting.utils.libraries_modelling import concatenate, TimeSeries, Scaler, mean_absolute_percentage_error
+from src.forecasting.utils.libraries_modelling import concatenate, TimeSeries, Scaler, mape
 from src.forecasting.utils.memory import cleanup
-from src.forecasting.tuils.pre_normalization import sqrt_transform_inverse, log1p_transform_inverse, 
 
 def evaluate_cv_timeseries(
     forecasts    : list[TimeSeries],
@@ -38,26 +37,31 @@ def evaluate_cv_timeseries(
         elif prenorm_type == 'sqrt':
             ts_inv = ts_inv ** 2
         elif prenorm_type == 'log1p':
-            ts_inv = np.expm1(ts_inv)
+            # ts_inv = np.expm1(ts_inv)
+            ts_inv = ts_inv.map(np.expm1)
             
         inv_components.append(ts_inv)
 
     pred = concatenate(inv_components, axis=1)
+    print(f'{pred.components} - start: {pred.shape}')
     # pred = scaler.inverse_transform(pred) ## LAMA
 
     # Extact actual and prediction
     start  = pred.start_time()
     end    = pred.end_time()
     actual = df_actual.loc[start:end]
-    pred   = pred.to_dataframe()
+
+    actual = TimeSeries.from_dataframe(actual, value_cols=actual.columns.tolist(), freq='h').astype('float32')
+    print(f'{actual.components} - start: {actual.shape}')
 
     # Calculate MAPE per variables
     mape_results = {}
-    for col in pred.columns:
+    for col in pred.components:
 
         # Avoid NaN results
         try:
-            val = mean_absolute_percentage_error(actual[col].values, pred[col].values)
+            # val = mean_absolute_percentage_error(actual[col], pred[col])
+            val = mape(actual[col], pred[col])
             if isinstance(val, float) and math.isnan(val):
                 print('!! MAPE is NAN. Change to 9999')
                 mape_results[col] = 9999

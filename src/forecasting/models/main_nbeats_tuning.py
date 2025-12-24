@@ -48,7 +48,7 @@ if __name__ == "__main__":
     # ========================= LOAD DATASET ========================= #
     # Load xlsx dataset
     ## CHANGE NUMBER BELOW FOR CHOOSE THE DATASET ##
-    dataset_used = 1
+    dataset_used = 4
     ## CHANGE NUMBER ABOVE FOR CHOOSE THE DATASET ## 
 
     df_past = None
@@ -58,31 +58,48 @@ if __name__ == "__main__":
         dataset_type = 'sqrt'
         prenorm_type = 'sqrt'
         df_past = pd.read_csv('data/processed/past_covariates_sqrt_transform.csv')
+        
+        # Load actual data
+        df_actual = pd.read_csv('data/processed/past_covariates.csv')
     elif dataset_used == 2:
         dataset_type = 'sqrt_NoOzon'
         prenorm_type = 'sqrt'
         df_past = pd.read_csv('data/processed/past_covariates_sqrt_transform_NoOzon.csv')
+
+        # Load actual data
+        df_actual = pd.read_csv('data/processed/past_covariates.csv').drop(columns=['y6'])
     elif dataset_used == 3:
         dataset_type = 'log1p'
         prenorm_type = 'log1p'
         df_past = pd.read_csv('data/processed/past_covariates_log_transform.csv')
+        
+        # Load actual data
+        df_actual = pd.read_csv('data/processed/past_covariates.csv')
     elif dataset_used == 4:
         dataset_type = 'log1p_NoOzon'
         prenorm_type = 'log1p'
         df_past = pd.read_csv('data/processed/past_covariates_log_transform_NoOzon.csv')
+
+        # Load actual data
+        df_actual = pd.read_csv('data/processed/past_covariates.csv').drop(columns=['y6'])
     else:
         dataset_type = 'default'
         prenorm_type = None
         df_past = pd.read_csv('data/processed/past_covariates.csv')
+
+        # Load actual data
+        df_actual = pd.read_csv('data/processed/past_covariates.csv')
 
 
 
     # ========================= DATA PREPROCESSING ========================= #
     # Convert timestamp to datatime
     df_past['t'] = pd.to_datetime(df_past['t'], format='%Y-%m-%d %H:%M:%S')
+    df_actual['t'] = pd.to_datetime(df_actual['t'], format='%Y-%m-%d %H:%M:%S')
 
     # Set index
     df_past = df_past.set_index('t').asfreq('h')
+    df_actual = df_actual.set_index('t').asfreq('h')
 
 
     ## ========================= LOAD CORRELATION RESULTS ========================= ##
@@ -99,8 +116,13 @@ if __name__ == "__main__":
     # Split dataset into Y and X
     # Drop low correlation columns.
     # df_past = df_past.drop(columns=[dropped_covariates]) # KEEP FOR DO DROP OR COMMEND IF WON'T DROP
+    drop_cols = True
+    if drop_cols == True:
+        df_past = df_past.drop(columns=['x4_zero', 'x4_nonzero', 'x5', 'x7_sin', 'x7_cos' ])
     Y = get_targets(df_past)
     X = get_features(df_past)
+    print(Y.columns.tolist())
+    print(X.columns.tolist())
 
     # Split to data train and test
     valid_size = 0.2
@@ -147,7 +169,11 @@ if __name__ == "__main__":
     )
 
     # Initialize X Columns to normalize
-    x_normalize_cols = ['x1', 'x3', 'x5', 'x6']
+    x_normalize_cols = None
+    if drop_cols == True:
+        x_normalize_cols = ['x1', 'x3', 'x6']
+    elif drop_cols == False:
+        x_normalize_cols = ['x1', 'x3', 'x5', 'x6']
 
     # Initialize X scalers
     X_scalers = {}
@@ -197,7 +223,7 @@ if __name__ == "__main__":
             X_valid          = X_valid_transformed,
             Y_scalers        = Y_scalers,
             X_scalers        = X_scalers,
-            Y_actual         = Y[:Y_valid.end_time()],
+            Y_actual         = df_actual.loc[:Y_valid.end_time()],
             validation_split = valid_size,
             max_epochs       = 150,
             Y_col_list       = Y.columns.to_list(),
