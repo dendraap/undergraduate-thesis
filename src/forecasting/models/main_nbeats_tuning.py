@@ -117,120 +117,116 @@ if __name__ == "__main__":
         df_past = df_past.drop(columns=['x4_zero', 'x4_nonzero', 'x5', 'x7_sin', 'x7_cos' ])
     Y = get_targets(df_past)
     X = get_features(df_past)
-    print(Y.columns.tolist())
-    print(X.columns.tolist())
-    print(Y.describe().T)
-    print(X.describe().T)
 
-    # # Split to data train and test
-    # valid_size = 0.2
-    # test_size  = 0.1
-    # Y_train, Y_valid, Y_test = dataframe_train_valid_test_split(
-    #     Y, valid_size=valid_size, test_size=test_size
-    # )
+    # Split to data train and test
+    valid_size = 0.2
+    test_size  = 0.1
+    Y_train, Y_valid, Y_test = dataframe_train_valid_test_split(
+        Y, valid_size=valid_size, test_size=test_size
+    )
 
-    # X_train, X_valid, X_test = dataframe_train_valid_test_split(
-    #     X, valid_size=valid_size, test_size=test_size
-    # )
+    X_train, X_valid, X_test = dataframe_train_valid_test_split(
+        X, valid_size=valid_size, test_size=test_size
+    )
 
-    # # Change to TimeSeries Dataset
-    # Y_train = TimeSeries.from_dataframe(Y_train, value_cols=Y_train.columns.tolist(), freq='h').astype('float32')
-    # X_train = TimeSeries.from_dataframe(X_train, value_cols=X_train.columns.tolist(), freq='h').astype('float32')
-    # Y_valid = TimeSeries.from_dataframe(Y_valid, value_cols=Y_valid.columns.tolist(), freq='h').astype('float32')
-    # X_valid = TimeSeries.from_dataframe(X_valid, value_cols=X_valid.columns.tolist(), freq='h').astype('float32')
-    # Y_test  = TimeSeries.from_dataframe(Y_test, value_cols=Y_test.columns.tolist(), freq='h').astype('float32')
-    # X_test  = TimeSeries.from_dataframe(X_test, value_cols=X_test.columns.tolist(), freq='h').astype('float32')
+    # Change to TimeSeries Dataset
+    Y_train = TimeSeries.from_dataframe(Y_train, value_cols=Y_train.columns.tolist(), freq='h').astype('float32')
+    X_train = TimeSeries.from_dataframe(X_train, value_cols=X_train.columns.tolist(), freq='h').astype('float32')
+    Y_valid = TimeSeries.from_dataframe(Y_valid, value_cols=Y_valid.columns.tolist(), freq='h').astype('float32')
+    X_valid = TimeSeries.from_dataframe(X_valid, value_cols=X_valid.columns.tolist(), freq='h').astype('float32')
+    Y_test  = TimeSeries.from_dataframe(Y_test, value_cols=Y_test.columns.tolist(), freq='h').astype('float32')
+    X_test  = TimeSeries.from_dataframe(X_test, value_cols=X_test.columns.tolist(), freq='h').astype('float32')
 
 
-    # ## ========================= NORMALIZATION ========================= ##
-    # # Initialize Y scalers
-    # Y_scalers = {}
-    # Y_train_transformed = Y_train.copy()
+    ## ========================= NORMALIZATION ========================= ##
+    # Initialize Y scalers
+    Y_scalers = {}
+    Y_train_transformed = Y_train.copy()
 
-    # # Normalize Y Train
-    # Y_train_transformed, Y_scalers = scale_Y_timeseries_per_component(
-    #     Y_train, fit=True
-    # )
+    # Normalize Y Train
+    Y_train_transformed, Y_scalers = scale_Y_timeseries_per_component(
+        Y_train, fit=True
+    )
 
-    # # Transform VALID & TEST
-    # Y_valid_transformed = Y_valid.copy()
-    # Y_test_transformed  = Y_test.copy()
+    # Transform VALID & TEST
+    Y_valid_transformed = Y_valid.copy()
+    Y_test_transformed  = Y_test.copy()
 
-    # # Normalize Y Validation
-    # Y_valid_transformed, _ = scale_Y_timeseries_per_component(
-    #     Y_valid, scalers=Y_scalers, fit=False
-    # )
+    # Normalize Y Validation
+    Y_valid_transformed, _ = scale_Y_timeseries_per_component(
+        Y_valid, scalers=Y_scalers, fit=False
+    )
 
-    # # Normalize Y Test
-    # Y_test_transformed, _ = scale_Y_timeseries_per_component(
-    #     Y_test, scalers=Y_scalers, fit=False
-    # )
+    # Normalize Y Test
+    Y_test_transformed, _ = scale_Y_timeseries_per_component(
+        Y_test, scalers=Y_scalers, fit=False
+    )
 
-    # # Initialize X Columns to normalize
-    # x_normalize_cols = None
-    # if drop_cols == True:
-    #     x_normalize_cols = ['x1', 'x3', 'x6']
-    # elif drop_cols == False:
-    #     x_normalize_cols = ['x1', 'x3', 'x5', 'x6']
+    # Initialize X Columns to normalize
+    x_normalize_cols = None
+    if drop_cols == True:
+        x_normalize_cols = ['x1', 'x3', 'x6']
+    elif drop_cols == False:
+        x_normalize_cols = ['x1', 'x3', 'x5', 'x6']
 
-    # # Initialize X scalers
-    # X_scalers = {}
-    # X_train_transformed = X_train.copy()
+    # Initialize X scalers
+    X_scalers = {}
+    X_train_transformed = X_train.copy()
 
-    # # Normalize X Train
-    # X_train_transformed, X_scalers = scale_X_timeseries_per_component(
-    #     ts   = X_train,
-    #     cols = x_normalize_cols,
-    #     fit  = True
-    # )
+    # Normalize X Train
+    X_train_transformed, X_scalers = scale_X_timeseries_per_component(
+        ts   = X_train,
+        cols = x_normalize_cols,
+        fit  = True
+    )
 
-    # # Transform VALID & TEST
-    # X_valid_transformed = X_valid.copy()
-    # X_test_transformed  = X_test.copy()
+    # Transform VALID & TEST
+    X_valid_transformed = X_valid.copy()
+    X_test_transformed  = X_test.copy()
 
-    # # Normalize X Validation
-    # X_valid_transformed, _ = scale_X_timeseries_per_component(
-    #     ts      = X_valid,
-    #     cols    = x_normalize_cols,
-    #     scalers = X_scalers,
-    #     fit     = False
-    # )
+    # Normalize X Validation
+    X_valid_transformed, _ = scale_X_timeseries_per_component(
+        ts      = X_valid,
+        cols    = x_normalize_cols,
+        scalers = X_scalers,
+        fit     = False
+    )
 
-    # # Normalize X Test
-    # X_test_transformed, _ = scale_X_timeseries_per_component(
-    #     ts      = X_test,
-    #     cols    = x_normalize_cols,
-    #     scalers = X_scalers,
-    #     fit     = False
-    # )
+    # Normalize X Test
+    X_test_transformed, _ = scale_X_timeseries_per_component(
+        ts      = X_test,
+        cols    = x_normalize_cols,
+        scalers = X_scalers,
+        fit     = False
+    )
 
 
-    # # ========================= DATA MODELLING ========================= #
-    # # Excel save location
-    # save_path  = 'reports/nbeats_tuned_params_optimized.xlsx'
+    # ========================= DATA MODELLING ========================= #
+    # Excel save location
+    save_path  = 'reports/nbeats_tuned_params_optimized.xlsx'
 
-    # # Tuning using Optuna
-    # study_nbeats = optuna.create_study(direction='minimize')
-    # study_nbeats.optimize(
-    #     lambda trial: nbeats_tuning_w_optuna(
-    #         dataset_type     = dataset_type,
-    #         prenorm_type     = prenorm_type,
-    #         Y_train          = Y_train_transformed,
-    #         X_train          = X_train_transformed,
-    #         Y_valid          = Y_valid_transformed,
-    #         X_valid          = X_valid_transformed,
-    #         Y_scalers        = Y_scalers,
-    #         X_scalers        = X_scalers,
-    #         Y_actual         = df_actual.loc[:Y_valid.end_time()],
-    #         validation_split = valid_size,
-    #         max_epochs       = 150,
-    #         Y_col_list       = Y.columns.to_list(),
-    #         X_col_list       = X.columns.to_list(),
-    #         custom_checkpoint= True,
-    #         save_path        = save_path,
-    #         work_dir         = work_dir,
-    #         trial            = trial
-    #     ), 
-    #     n_trials=3000, 
-    #     callbacks=[print_callback]
-    # )
+    # Tuning using Optuna
+    study_nbeats = optuna.create_study(direction='minimize')
+    study_nbeats.optimize(
+        lambda trial: nbeats_tuning_w_optuna(
+            dataset_type     = dataset_type,
+            prenorm_type     = prenorm_type,
+            Y_train          = Y_train_transformed,
+            X_train          = X_train_transformed,
+            Y_valid          = Y_valid_transformed,
+            X_valid          = X_valid_transformed,
+            Y_scalers        = Y_scalers,
+            X_scalers        = X_scalers,
+            Y_actual         = df_actual.loc[:Y_valid.end_time()],
+            validation_split = valid_size,
+            max_epochs       = 150,
+            Y_col_list       = Y.columns.to_list(),
+            X_col_list       = X.columns.to_list(),
+            custom_checkpoint= True,
+            save_path        = save_path,
+            work_dir         = work_dir,
+            trial            = trial
+        ), 
+        n_trials=3000, 
+        callbacks=[print_callback]
+    )
