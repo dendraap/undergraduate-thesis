@@ -2,13 +2,6 @@ from src.forecasting.utils.libraries_data_handling import pd
 from src.forecasting.utils.libraries_others import os, json, datetime
 from src.forecasting.utils.memory import cleanup
 
-def serialize_scalers(scalers: dict) -> dict:
-    return {
-        col: {
-            "scaler_type": scaler.__class__.__name__,
-        }
-        for col, scaler in scalers.items()
-    }
 
 def nbeats_store_to_excel(
     model_name          : str,
@@ -28,8 +21,6 @@ def nbeats_store_to_excel(
     validation_split    : float,
     Y_col_list          : list,
     X_col_list          : list,
-    Y_scalers           : dict,
-    X_scalers           : dict,
     add_encoders        : bool,
     custom_checkpoint   : bool,
     status              : str,
@@ -64,8 +55,6 @@ def nbeats_store_to_excel(
         validation_split (float)        : Proportion of validation split used.
         Y_col_list (list)               : List of targeted columns used.
         X_col_list (list)               : List of covariates columns used.
-        Y_scalers (dict)                : List of scaler of each targeted series.
-        X_scalers (dict)                : List of scaler of each covariates series.
         add_encoders (bool)             : Whether add encoders is used or not.
         custom_checkpoint (bool)        : Whether use custom checkpoint or not.
         status (str)                    : Model status when tuned (SUCCESS, PRUNED, or OOM SKIPPED).
@@ -105,8 +94,6 @@ def nbeats_store_to_excel(
         'stride'             : output_chunk_length,
         'Y_col_list'         : Y_col_list,
         'X_col_list'         : X_col_list,
-        'Y_scalers'          : json.dumps(serialize_scalers(Y_scalers)),
-        'X_scalers'          : json.dumps(serialize_scalers(X_scalers)),
         'add_encoders'       : json.dumps(add_encoders) if add_encoders else None
     }
 

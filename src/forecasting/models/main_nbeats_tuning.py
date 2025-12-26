@@ -47,9 +47,9 @@ if __name__ == "__main__":
 
     # ========================= LOAD DATASET ========================= #
     # Load xlsx dataset
-    ## CHANGE NUMBER BELOW FOR CHOOSE THE DATASET ##
+    ## ======= CHANGE NUMBER BELOW FOR CHOOSE THE DATASET ======= ##
     dataset_used = 4
-    ## CHANGE NUMBER ABOVE FOR CHOOSE THE DATASET ## 
+    ## ======= CHANGE NUMBER ABOVE FOR CHOOSE THE DATASET ======= ## 
 
     df_past      = None
     dataset_type = None
@@ -72,6 +72,7 @@ if __name__ == "__main__":
     elif dataset_used == 3:
         dataset_type = 'log1p'
         prenorm_type = 'log1p'
+        df_past = pd.read_csv('data/processed/past_covariates_log_transform.csv')
 
     elif dataset_used == 4:
         dataset_type = 'log1p_NoOzon'
@@ -81,10 +82,23 @@ if __name__ == "__main__":
         # Drop y6
         df_actual = df_actual.drop(columns=['y6'])
 
+    elif dataset_used == 5:
+        dataset_type = 'no_outliers'
+        prenorm_type = None
+        df_past = pd.read_csv('data/processed/past_covariates_noOutliers.csv')
+
+    elif dataset_used == 6:
+        dataset_type = 'no_outliers_noOzon'
+        prenorm_type = None
+        df_past = pd.read_csv('data/processed/past_covariates_noOutliers_NoOzon.csv')
+
+        # Drop y6
+        df_actual = df_actual.drop(columns=['y6'])
     else:
         dataset_type = 'default'
         prenorm_type = None
         df_past = pd.read_csv('data/processed/past_covariates.csv')
+        
 
 
 
@@ -94,7 +108,7 @@ if __name__ == "__main__":
     df_actual['t'] = pd.to_datetime(df_actual['t'], format='%Y-%m-%d %H:%M:%S')
 
     # Set index
-    df_past = df_past.set_index('t').asfreq('h')
+    df_past   = df_past.set_index('t').asfreq('h')
     df_actual = df_actual.set_index('t').asfreq('h')
 
 
@@ -108,26 +122,41 @@ if __name__ == "__main__":
     # Encode drop colomns name
     dropped_covariates = [col_encode[feature] for feature in dropped_covariates]
 
+    # Drop covariates columns
+    ## ======= CHANGE NUMBER BELOW WHETHER TO DROP OR NOT ======= ##
+    drop_cols = True
+    ## ======= CHANGE NUMBER ABOVE WHETHER TO DROP OR NOT ======= ##
+    
+    if drop_cols == True and dataset_used <= 6:
+        df_past = df_past.drop(columns=['x4_zero', 'x4_nonzero', 'x5', 'x7_sin', 'x7_cos'])
+    elif drop_cols == True and dataset_used > 6:
+        df_past = df_past.drop(columns=['x4', 'x5', 'x7'])
+
+    
     ## ========================= DATA SPLIT ========================= ##
     # Split dataset into Y and X
-    # Drop low correlation columns.
-    # df_past = df_past.drop(columns=[dropped_covariates]) # KEEP FOR DO DROP OR COMMEND IF WON'T DROP
-    drop_cols = True
-    if drop_cols == True:
-        df_past = df_past.drop(columns=['x4_zero', 'x4_nonzero', 'x5', 'x7_sin', 'x7_cos' ])
     Y = get_targets(df_past)
     X = get_features(df_past)
 
     # Split to data train and test
-    valid_size = 0.2
+    ## ======= CHANGE NUMBER BELOW FOR CHOOSE DATA SPLIT SIZE ======= ##
+    valid_size = 0.1
     test_size  = 0.1
+    ## ======= CHANGE NUMBER ABOVE FOR CHOOSE DATA SPLIT SIZE ======= ##
+    
     Y_train, Y_valid, Y_test = dataframe_train_valid_test_split(
         Y, valid_size=valid_size, test_size=test_size
     )
 
+    # print(Y_train.describe().T)
+    # print(Y_test.describe().T)
+
     X_train, X_valid, X_test = dataframe_train_valid_test_split(
         X, valid_size=valid_size, test_size=test_size
     )
+
+    # print(X_train.describe().T)
+    # print(X_test.describe().T)
 
     # Change to TimeSeries Dataset
     Y_train = TimeSeries.from_dataframe(Y_train, value_cols=Y_train.columns.tolist(), freq='h').astype('float32')
@@ -140,27 +169,8 @@ if __name__ == "__main__":
 
     ## ========================= NORMALIZATION ========================= ##
     # Initialize Y scalers
-    Y_scalers = {}
-    Y_train_transformed = Y_train.copy()
-
-    # Normalize Y Train
-    Y_train_transformed, Y_scalers = scale_Y_timeseries_per_component(
-        Y_train, fit=True
-    )
-
-    # Transform VALID & TEST
-    Y_valid_transformed = Y_valid.copy()
-    Y_test_transformed  = Y_test.copy()
-
-    # Normalize Y Validation
-    Y_valid_transformed, _ = scale_Y_timeseries_per_component(
-        Y_valid, scalers=Y_scalers, fit=False
-    )
-
-    # Normalize Y Test
-    Y_test_transformed, _ = scale_Y_timeseries_per_component(
-        Y_test, scalers=Y_scalers, fit=False
-    )
+    Y_scaler = Scaler()
+    X_scaler = Scaler()
 
     # Initialize X Columns to normalize
     x_normalize_cols = None
@@ -168,37 +178,67 @@ if __name__ == "__main__":
         x_normalize_cols = ['x1', 'x3', 'x6']
     elif drop_cols == False:
         x_normalize_cols = ['x1', 'x3', 'x5', 'x6']
+        
+    Y_train_transformed = Y_scaler.fit_transform(Y_train)
+    X_train_transformed = X_scaler.fit_transform(X_train[x_normalize_cols])
 
-    # Initialize X scalers
-    X_scalers = {}
-    X_train_transformed = X_train.copy()
+    Y_valid_transformed = Y_scaler.transform(Y_valid)
+    X_valid_transformed = X_scaler.transform(X_valid[x_normalize_cols])
+    
+    # Y_scalers = {}
+    # Y_train_transformed = Y_train.copy()
 
-    # Normalize X Train
-    X_train_transformed, X_scalers = scale_X_timeseries_per_component(
-        ts   = X_train,
-        cols = x_normalize_cols,
-        fit  = True
-    )
+    # # Normalize Y Train
+    # Y_train_transformed, Y_scalers = scale_Y_timeseries_per_component(
+    #     Y_train, fit=True
+    # )
 
-    # Transform VALID & TEST
-    X_valid_transformed = X_valid.copy()
-    X_test_transformed  = X_test.copy()
+    # # Transform VALID & TEST
+    # Y_valid_transformed = Y_valid.copy()
+    # Y_test_transformed  = Y_test.copy()
 
-    # Normalize X Validation
-    X_valid_transformed, _ = scale_X_timeseries_per_component(
-        ts      = X_valid,
-        cols    = x_normalize_cols,
-        scalers = X_scalers,
-        fit     = False
-    )
+    # # Normalize Y Validation
+    # Y_valid_transformed, _ = scale_Y_timeseries_per_component(
+    #     Y_valid, scalers=Y_scalers, fit=False
+    # )
 
-    # Normalize X Test
-    X_test_transformed, _ = scale_X_timeseries_per_component(
-        ts      = X_test,
-        cols    = x_normalize_cols,
-        scalers = X_scalers,
-        fit     = False
-    )
+    # # Normalize Y Test
+    # Y_test_transformed, _ = scale_Y_timeseries_per_component(
+    #     Y_test, scalers=Y_scalers, fit=False
+    # )
+
+ 
+
+    # # Initialize X scalers
+    # X_scalers = {}
+    # X_train_transformed = X_train.copy()
+
+    # # Normalize X Train
+    # X_train_transformed, X_scalers = scale_X_timeseries_per_component(
+    #     ts   = X_train,
+    #     cols = x_normalize_cols,
+    #     fit  = True
+    # )
+
+    # # Transform VALID & TEST
+    # X_valid_transformed = X_valid.copy()
+    # X_test_transformed  = X_test.copy()
+
+    # # Normalize X Validation
+    # X_valid_transformed, _ = scale_X_timeseries_per_component(
+    #     ts      = X_valid,
+    #     cols    = x_normalize_cols,
+    #     scalers = X_scalers,
+    #     fit     = False
+    # )
+
+    # # Normalize X Test
+    # X_test_transformed, _ = scale_X_timeseries_per_component(
+    #     ts      = X_test,
+    #     cols    = x_normalize_cols,
+    #     scalers = X_scalers,
+    #     fit     = False
+    # )
 
 
     # ========================= DATA MODELLING ========================= #
@@ -215,8 +255,8 @@ if __name__ == "__main__":
             X_train          = X_train_transformed,
             Y_valid          = Y_valid_transformed,
             X_valid          = X_valid_transformed,
-            Y_scalers        = Y_scalers,
-            X_scalers        = X_scalers,
+            Y_scaler         = Y_scaler,
+            X_scaler         = X_scaler,
             Y_actual         = df_actual.loc[:Y_valid.end_time()],
             validation_split = valid_size,
             max_epochs       = 150,

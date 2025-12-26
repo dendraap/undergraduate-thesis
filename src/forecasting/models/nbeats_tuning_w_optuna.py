@@ -18,8 +18,8 @@ def nbeats_tuning_w_optuna(
     X_train           : TimeSeries,
     Y_valid           : TimeSeries,
     X_valid           : TimeSeries,
-    Y_scalers         : dict,
-    X_scalers         : dict,
+    Y_scaler          : Scaler,
+    X_scaler          : Scaler,
     Y_actual          : pd.DataFrame,
     validation_split  : float,
     max_epochs        : int,
@@ -40,8 +40,8 @@ def nbeats_tuning_w_optuna(
         X_train (TimeSeries)                : Train covariates series.
         Y_valid (TimeSeries)                : Validation targeted series.
         X_valid (TimeSeries)                : Validation covariates series.
-        Y_scalers (dict)                    : List of scaler of each targeted series.
-        X_scalers (dict)                    : List of scaler of each covariates series.
+        Y_scaler (Scaler)                   : Scaler of targeted series.
+        X_scaler (Scaler)                   : Scaler of covariates series.
         Y_actual (pd.DataFrame)             : Actual targeted data to compare.
         validation_split (float)            : Validation data size.
         max_epochs (int)                    : Max training epochs.
@@ -157,7 +157,7 @@ def nbeats_tuning_w_optuna(
             'fit_cost_seconds', 'dataset_type', 'input_chunk_length', 'output_chunk_length',
             'n_epochs', 'batch_size', 'num_stacks', 'num_blocks', 'num_layers',
             'layer_widths', 'dropout', 'lr', 'random_state', 'validation_split',
-            'stride', 'Y_col_list', 'X_col_list', 'Y_scalers', 'X_scalers', 'add_encoders',
+            'stride', 'Y_col_list', 'X_col_list', 'add_encoders',
             'early_stopping', 'checkpoint_config', 'trainer_config'
         ]
         df_empty = pd.DataFrame(columns=columns)
@@ -226,8 +226,6 @@ def nbeats_tuning_w_optuna(
                     validation_split    = validation_split,
                     Y_col_list          = Y_col_list,
                     X_col_list          = X_col_list,
-                    Y_scalers           = Y_scalers,
-                    X_scalers           = X_scalers,
                     add_encoders        = add_encoders,
                     custom_checkpoint   = custom_checkpoint,
                     status              = 'OOM SKIPPED',
@@ -305,7 +303,7 @@ def nbeats_tuning_w_optuna(
                 # Evaluate
                 mape_cv = evaluate_cv_timeseries(
                     forecasts    = cv_test,
-                    scalers      = Y_scalers,
+                    scaler       = Y_scaler,
                     df_actual    = Y_actual,
                     prenorm_type = prenorm_type
                 )
@@ -344,8 +342,6 @@ def nbeats_tuning_w_optuna(
                     validation_split    = validation_split,
                     Y_col_list          = Y_col_list,
                     X_col_list          = X_col_list,
-                    Y_scalers           = Y_scalers,
-                    X_scalers           = X_scalers,
                     add_encoders        = add_encoders,
                     custom_checkpoint   = custom_checkpoint,
                     status              = 'SUCCESS',
@@ -398,8 +394,6 @@ def nbeats_tuning_w_optuna(
                     validation_split    = validation_split,
                     Y_col_list          = Y_col_list,
                     X_col_list          = X_col_list,
-                    Y_scalers           = Y_scalers,
-                    X_scalers           = X_scalers,
                     add_encoders        = add_encoders,
                     custom_checkpoint   = custom_checkpoint,
                     status              = 'PRUNED',
