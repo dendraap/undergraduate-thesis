@@ -33,28 +33,7 @@ def evaluate_cv_timeseries(
         pred = pred ** 2
     elif prenorm_type == 'log1p':
         pred = pred.map(np.expm1)
-    
-    # inv_components = []
-    # for col in pred.components:
-
-    #     # Inverse normalization
-    #     ts_inv = scalers[col].inverse_transform(pred[col])
-
-    #     # Inverse pre-normalization
-    #     if prenorm_type is None:
-    #         pass
-    #     elif prenorm_type == 'sqrt':
-    #         ts_inv = ts_inv ** 2
-    #     elif prenorm_type == 'log1p':
-    #         # ts_inv = np.expm1(ts_inv)
-    #         ts_inv = ts_inv.map(np.expm1)
-            
-    #     inv_components.append(ts_inv)
-
-    # pred = concatenate(inv_components, axis=1)
-    # print(f'{pred.components} - start: {pred.shape}')
-    # pred = scaler.inverse_transform(pred) ## LAMA
-
+ 
     # Extact actual and prediction
     start  = pred.start_time()
     end    = pred.end_time()

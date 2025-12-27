@@ -100,8 +100,8 @@ def nbeats_tuning_w_optuna(
         int(PeriodList.D1), int(PeriodList.D1 * 2), int(PeriodList.D1 * 3), int(PeriodList.D1 * 4), int(PeriodList.D1 * 5), int(PeriodList.D1 * 6), int(PeriodList.W1),
         int(PeriodList.D1 * 8), int(PeriodList.D1 * 9), int(PeriodList.D1 * 10), int(PeriodList.D1 * 11), int(PeriodList.D1 * 12), int(PeriodList.D1 * 13), int(PeriodList.W1 * 2)
     ])
-    output_chunk_length = trial.suggest_categorical('output_chunk_length', [24])  # CHANGE THIS FOR EXPERIMENTS 12 or 24
-    batch_size          = trial.suggest_categorical('batch_size', [32, 64, 96])
+    output_chunk_length = trial.suggest_categorical('output_chunk_length', [12])  # CHANGE THIS FOR EXPERIMENTS 12 or 24
+    batch_size          = trial.suggest_categorical('batch_size', [16, 32, 64, 96])
     num_stacks          = trial.suggest_int('num_stacks', 5, 30)
     num_blocks          = trial.suggest_categorical('num_blocks', [1, 2, 3, 4])
     num_layers          = trial.suggest_categorical('num_layers', [2, 4])

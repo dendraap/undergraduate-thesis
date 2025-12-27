@@ -48,7 +48,7 @@ if __name__ == "__main__":
     # ========================= LOAD DATASET ========================= #
     # Load xlsx dataset
     ## ======= CHANGE NUMBER BELOW FOR CHOOSE THE DATASET ======= ##
-    dataset_used = 4
+    dataset_used = 6
     ## ======= CHANGE NUMBER ABOVE FOR CHOOSE THE DATASET ======= ## 
 
     df_past      = None
@@ -100,8 +100,6 @@ if __name__ == "__main__":
         df_past = pd.read_csv('data/processed/past_covariates.csv')
         
 
-
-
     # ========================= DATA PREPROCESSING ========================= #
     # Convert timestamp to datatime
     df_past['t'] = pd.to_datetime(df_past['t'], format='%Y-%m-%d %H:%M:%S')
@@ -148,15 +146,9 @@ if __name__ == "__main__":
         Y, valid_size=valid_size, test_size=test_size
     )
 
-    # print(Y_train.describe().T)
-    # print(Y_test.describe().T)
-
     X_train, X_valid, X_test = dataframe_train_valid_test_split(
         X, valid_size=valid_size, test_size=test_size
     )
-
-    # print(X_train.describe().T)
-    # print(X_test.describe().T)
 
     # Change to TimeSeries Dataset
     Y_train = TimeSeries.from_dataframe(Y_train, value_cols=Y_train.columns.tolist(), freq='h').astype('float32')
@@ -168,10 +160,6 @@ if __name__ == "__main__":
 
 
     ## ========================= NORMALIZATION ========================= ##
-    # Initialize Y scalers
-    Y_scaler = Scaler()
-    X_scaler = Scaler()
-
     # Initialize X Columns to normalize
     x_normalize_cols = None
     if drop_cols == True:
@@ -179,67 +167,16 @@ if __name__ == "__main__":
     elif drop_cols == False:
         x_normalize_cols = ['x1', 'x3', 'x5', 'x6']
         
+    # Initialize Y scalers
+    Y_scaler = Scaler()
+    X_scaler = Scaler()
+
     Y_train_transformed = Y_scaler.fit_transform(Y_train)
     X_train_transformed = X_scaler.fit_transform(X_train[x_normalize_cols])
 
     Y_valid_transformed = Y_scaler.transform(Y_valid)
     X_valid_transformed = X_scaler.transform(X_valid[x_normalize_cols])
     
-    # Y_scalers = {}
-    # Y_train_transformed = Y_train.copy()
-
-    # # Normalize Y Train
-    # Y_train_transformed, Y_scalers = scale_Y_timeseries_per_component(
-    #     Y_train, fit=True
-    # )
-
-    # # Transform VALID & TEST
-    # Y_valid_transformed = Y_valid.copy()
-    # Y_test_transformed  = Y_test.copy()
-
-    # # Normalize Y Validation
-    # Y_valid_transformed, _ = scale_Y_timeseries_per_component(
-    #     Y_valid, scalers=Y_scalers, fit=False
-    # )
-
-    # # Normalize Y Test
-    # Y_test_transformed, _ = scale_Y_timeseries_per_component(
-    #     Y_test, scalers=Y_scalers, fit=False
-    # )
-
- 
-
-    # # Initialize X scalers
-    # X_scalers = {}
-    # X_train_transformed = X_train.copy()
-
-    # # Normalize X Train
-    # X_train_transformed, X_scalers = scale_X_timeseries_per_component(
-    #     ts   = X_train,
-    #     cols = x_normalize_cols,
-    #     fit  = True
-    # )
-
-    # # Transform VALID & TEST
-    # X_valid_transformed = X_valid.copy()
-    # X_test_transformed  = X_test.copy()
-
-    # # Normalize X Validation
-    # X_valid_transformed, _ = scale_X_timeseries_per_component(
-    #     ts      = X_valid,
-    #     cols    = x_normalize_cols,
-    #     scalers = X_scalers,
-    #     fit     = False
-    # )
-
-    # # Normalize X Test
-    # X_test_transformed, _ = scale_X_timeseries_per_component(
-    #     ts      = X_test,
-    #     cols    = x_normalize_cols,
-    #     scalers = X_scalers,
-    #     fit     = False
-    # )
-
 
     # ========================= DATA MODELLING ========================= #
     # Excel save location
@@ -267,6 +204,6 @@ if __name__ == "__main__":
             work_dir         = work_dir,
             trial            = trial
         ), 
-        n_trials=3000, 
+        n_trials=8, 
         callbacks=[print_callback]
     )
