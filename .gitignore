@@ -1,6 +1,7 @@
 # _____________ AI _____________
 # Ignore tuned model and environment
 models/checkpoint_tuning_nbeats/*
+models/checkpoint_tuning_nbeats2/*
 models/checkpoint_tuning_tft/*
 models/trial_and_error/*
 models/best_model/*
