@@ -48,7 +48,7 @@ if __name__ == "__main__":
     # ========================= LOAD DATASET ========================= #
     # Load xlsx dataset
     ## ======= CHANGE NUMBER BELOW FOR CHOOSE THE DATASET ======= ##
-    dataset_used = 6
+    dataset_used = 2
     ## ======= CHANGE NUMBER ABOVE FOR CHOOSE THE DATASET ======= ## 
 
     df_past      = None
@@ -204,6 +204,6 @@ if __name__ == "__main__":
             work_dir         = work_dir,
             trial            = trial
         ), 
-        n_trials=8, 
+        n_trials=4000, 
         callbacks=[print_callback]
     )
