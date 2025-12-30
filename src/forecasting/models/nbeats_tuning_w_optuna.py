@@ -203,7 +203,7 @@ def nbeats_tuning_w_optuna(
             estimate_trainable_params = (input_chunk_length * num_stacks * num_blocks * num_layers * layer_widths)
 
             # Avoid huge model
-            if estimate_trainable_params > 22000000:
+            if estimate_trainable_params > 30000000:
                 print(f'⚠️ Skipping {model_name}. Model can be hungry of RAM.')
                 print('!! Saving to excel instead ....')
                 
