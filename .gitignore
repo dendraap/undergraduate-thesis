@@ -10,6 +10,7 @@ env_skripsi/
 
 # Keep .gitkeep to stay push upper folder
 !models/checkpoint_tuning_nbeats/.gitkeep
+!models/checkpoint_tuning_nbeats2/.gitkeep
 !models/checkpoint_tuning_tft/.gitkeep
 !models/trial_and_error/.gitkeep
 !models/best_model/.gitkeep
