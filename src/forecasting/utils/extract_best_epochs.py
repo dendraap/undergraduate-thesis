@@ -28,6 +28,7 @@ def extract_best_epoch_from_checkpoint(
         # Find file name
         if custom_model:
             match = re.search(r'MAPE-best-epoch=(\d+)', f)
+            # match = re.search(r'RMSE-best-epoch=(\d+)', f)
         else:
             match = re.search(r'best-epoch=(\d+)', f)
 

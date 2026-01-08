@@ -54,7 +54,8 @@ if __name__ == "__main__":
     df_past      = None
     dataset_type = None
     prenorm_type = None
-    df_actual    = pd.read_csv('data/processed/past_covariates_noOutliers.csv').drop(columns=['x1','x2','x3','x4','x5','x6','x7','x8'])
+    # df_actual    = pd.read_csv('data/processed/past_covariates_noOutliers.csv').drop(columns=['x1','x2','x3','x4','x5','x6','x7','x8'])
+    df_actual    = pd.read_csv('data/processed/past_covariates_noOutliers_5.csv').drop(columns=['x1','x2','x3','x4_zero', 'x4_nonzero','x5','x6','x7_sin', 'x7_cos','x8_zero', 'x8_nonzero'])
 
     if dataset_used == 1:
         dataset_type = 'sqrt'
@@ -62,9 +63,10 @@ if __name__ == "__main__":
         df_past = pd.read_csv('data/processed/past_covariates_sqrt_transform.csv')
 
     elif dataset_used == 2:
-        dataset_type = 'sqrt_NoOzon'
+        dataset_type = 'sqrt_NoOzon_5'
         prenorm_type = 'sqrt'
-        df_past = pd.read_csv('data/processed/past_covariates_sqrt_transform_NoOzon.csv')
+        # df_past = pd.read_csv('data/processed/past_covariates_sqrt_transform_NoOzon.csv')
+        df_past = pd.read_csv('data/processed/past_covariates_sqrt_transform_NoOzon_5.csv')
 
         # Drop y6
         df_actual = df_actual.drop(columns=['y6'])

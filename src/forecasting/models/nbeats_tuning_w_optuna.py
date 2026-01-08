@@ -1,7 +1,7 @@
 from src.forecasting.utils.libraries_data_handling import np, pd, math
 from src.forecasting.utils.libraries_others import os, re, time, json, psutil, shutil, datetime
 from src.forecasting.utils.data_split import timeseries_train_test_split
-from src.forecasting.utils.libraries_modelling import torch, concatenate, TimeSeries, Scaler, NBEATSModel, Callback, EarlyStopping, ModelCheckpoint, optuna, PyTorchLightningPruningCallback, Trial, plot_contour, plot_optimization_history, plot_param_importances, GaussianLikelihood, TrialPruned, ParameterSampler, MeanAbsolutePercentageError, mean_absolute_percentage_error
+from src.forecasting.utils.libraries_modelling import torch, concatenate, TimeSeries, Scaler, NBEATSModel, Callback, EarlyStopping, ModelCheckpoint, optuna, PyTorchLightningPruningCallback, Trial, plot_contour, plot_optimization_history, plot_param_importances, GaussianLikelihood, TrialPruned, ParameterSampler, MeanAbsolutePercentageError, mean_absolute_percentage_error, MeanSquaredError, MeanAbsoluteError
 from src.forecasting.utils.extract_checkpoint_result import extract_checkpoint_results
 from src.forecasting.utils.memory import cleanup
 from src.forecasting.constants.enums import PeriodList
@@ -110,6 +110,18 @@ def nbeats_tuning_w_optuna(
     lr                  = trial.suggest_categorical('lr', [0.001, 0.0005, 0.0002, 0.0001, 0.00005, 0.00002, 0.00001])
     enc_key             = trial.suggest_categorical('add_encoders', list(encoder_options.keys()))
     add_encoders        = encoder_options[enc_key]
+    
+    # input_chunk_length  = trial.suggest_categorical('input_chunk_length', [int(PeriodList.D1 * 2)])
+    # output_chunk_length = trial.suggest_categorical('output_chunk_length', [12])  # CHANGE THIS FOR EXPERIMENTS 12 or 24
+    # batch_size          = trial.suggest_categorical('batch_size', [32])
+    # num_stacks          = trial.suggest_int('num_stacks', 16, 17)
+    # num_blocks          = trial.suggest_categorical('num_blocks', [2])
+    # num_layers          = trial.suggest_categorical('num_layers', [4])
+    # layer_widths        = trial.suggest_categorical('layer_widths', [512])
+    # dropout             = trial.suggest_categorical('dropout', [0.2])
+    # lr                  = trial.suggest_categorical('lr', [0.0002])
+    # enc_key             = trial.suggest_categorical('add_encoders', ['enc0'])
+    # add_encoders        = encoder_options[enc_key]
 
     
     print(
@@ -136,7 +148,7 @@ def nbeats_tuning_w_optuna(
         f'optuna_nbeats_type{dataset_type}_ic{input_chunk_length}_oc{output_chunk_length}_bs{batch_size}'
         f'_st{num_stacks}_bl{num_blocks}_ly{num_layers}'
         f'_wd{layer_widths}_dp{dropout}_lr{lr}_encoders{enc_key}_stride{output_chunk_length}'
-        f'_vl{validation_split}_Ycol{len(Y_col_list)}_Xcol{len(X_col_list)}_monitorMAPE'
+        f'_vl{validation_split}_Ycol{len(Y_col_list)}_Xcol{len(X_col_list)}_monitorMAPE_5%Clip' # CHANGE THIS
     )
     folder_path = os.path.join(work_dir, model_name)
 

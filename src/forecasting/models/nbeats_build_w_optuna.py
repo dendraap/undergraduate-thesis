@@ -1,6 +1,6 @@
 from src.forecasting.utils.libraries_others import os, re
 from src.forecasting.utils.data_split import timeseries_train_test_split
-from src.forecasting.utils.libraries_modelling import torch, TimeSeries, NBEATSModel, Callback, EarlyStopping, ModelCheckpoint, optuna, PyTorchLightningPruningCallback, Trial, GaussianLikelihood, MeanAbsolutePercentageError
+from src.forecasting.utils.libraries_modelling import torch, TimeSeries, NBEATSModel, Callback, EarlyStopping, ModelCheckpoint, optuna, PyTorchLightningPruningCallback, Trial, GaussianLikelihood, MeanAbsolutePercentageError, MeanSquaredError, MeanAbsoluteError
 from src.forecasting.utils.memory import cleanup
 
 # to avoid import of both lightning and pytorch_lightning
@@ -61,6 +61,9 @@ def nbeats_build_w_optuna(
 
     # Initialize TorchMetrics, used as the monitor
     torch_metrics = MeanAbsolutePercentageError()
+    # torch_metrics = MeanSquaredError(squared=False)
+    # torch_metrics = MeanAbsoluteError()
+    # torch_metrics = MeanSquaredError(squared=True)
 
     # pl_trainer_kwargs setup
     pl_trainer_kwargs = {}
@@ -78,6 +81,8 @@ def nbeats_build_w_optuna(
     if include_stopper:
         early_stopper = EarlyStopping(
             monitor   = 'val_MeanAbsolutePercentageError', #val_loss
+            # monitor   = 'val_MeanSquaredError', #val_loss
+            # monitor   = 'val_MeanAbsoluteError', #val_loss
             patience  = 5,
             min_delta = 0.01,
             mode      = 'min',
@@ -92,7 +97,13 @@ def nbeats_build_w_optuna(
         checkpoint_callback = ModelCheckpoint(
             dirpath    = os.path.join(work_dir, model_name, checkpoints),
             filename   = 'MAPE-best-epoch={epoch}-val_MAPE={val_MeanAbsolutePercentageError:.4f}-val_loss={val_loss:.4f}',
+            # filename   = 'MSE-best-epoch={epoch}-val_MSE={val_MeanSquaredError:.4f}-val_loss={val_loss:.4f}',
+            # filename   = 'MAE-best-epoch={epoch}-val_MAE={val_MeanAbsoluteError:.4f}-val_loss={val_loss:.4f}',
+            # filename   = 'RMSE-best-epoch={epoch}-val_RMSE={val_MeanSquaredError:.4f}-val_loss={val_loss:.4f}',
+            
             monitor    = 'val_MeanAbsolutePercentageError',
+            # monitor    = 'val_MeanSquaredError',
+            # monitor    = 'val_MeanAbsoluteError',
             save_top_k = 1,
             mode       = 'min',
             auto_insert_metric_name = False
@@ -102,6 +113,9 @@ def nbeats_build_w_optuna(
     # Optuna pruning callback
     if use_pruner:
         pruner = PatchedPruningCallback(trial, monitor='val_MeanAbsolutePercentageError')
+        # pruner = PatchedPruningCallback(trial, monitor='val_MeanSquaredError')
+        # pruner = PatchedPruningCallback(trial, monitor='val_RootMeanSquaredError')
+        # pruner = PatchedPruningCallback(trial, monitor='val_MeanAbsoluteError')
         callbacks.append(pruner)
 
     if custom_checkpoint:
@@ -157,6 +171,9 @@ def nbeats_build_w_optuna(
         print(f'\n📂 Files in checkpoint dir: {ckpt_list}')
 
         pattern_custom  = r"MAPE-best-epoch=(\d+)-val_MAPE=(-?\d+(?:\.\d+)?)-val_loss=(-?\d+(?:\.\d+)?)(?:\.ckpt)?"
+        # pattern_custom  = r"MSE-best-epoch=(\d+)-val_MSE=(-?\d+(?:\.\d+)?)-val_loss=(-?\d+(?:\.\d+)?)(?:\.ckpt)?"
+        # pattern_custom  = r"MAE-best-epoch=(\d+)-val_MAE=(-?\d+(?:\.\d+)?)-val_loss=(-?\d+(?:\.\d+)?)(?:\.ckpt)?"
+        # pattern_custom  = r"RMSE-best-epoch=(\d+)-val_RMSE=(-?\d+(?:\.\d+)?)-val_loss=(-?\d+(?:\.\d+)?)(?:\.ckpt)?"
         pattern_default = r"best-epoch=(\d+)-val_loss=(-?\d+(?:\.\d+)?)(?:\.ckpt)?"
         pattern_last    = r"last-epoch=(\d+)(?:\.ckpt)?"
 

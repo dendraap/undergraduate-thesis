@@ -23,7 +23,8 @@ from sklearn.model_selection import ParameterSampler
 
 # Evaluation
 from torchmetrics import MeanAbsolutePercentageError
-from darts.metrics import smape, mape
+from torchmetrics.regression import MeanSquaredError, MeanAbsoluteError
+from darts.metrics import smape, mape, mae, rmse, mse
 from sklearn.metrics import (
     mean_absolute_error,
     root_mean_squared_error,

@@ -1,6 +1,6 @@
 from src.forecasting.utils.libraries_data_handling import np, pd, math
 from src.forecasting.utils.data_split import timeseries_train_test_split
-from src.forecasting.utils.libraries_modelling import concatenate, TimeSeries, Scaler, mape
+from src.forecasting.utils.libraries_modelling import concatenate, TimeSeries, Scaler, mape, mae, rmse, mse
 from src.forecasting.utils.memory import cleanup
 
 def evaluate_cv_timeseries(
@@ -47,8 +47,10 @@ def evaluate_cv_timeseries(
 
         # Avoid NaN results
         try:
-            # val = mean_absolute_percentage_error(actual[col], pred[col])
             val = mape(actual[col], pred[col])
+            # val = mse(actual[col], pred[col])
+            # val = mae(actual[col], pred[col])
+            # val = rmse(actual[col], pred[col])
             print(val)
             if isinstance(val, float) and math.isnan(val):
                 print('!! MAPE is NAN. Change to 9999')
