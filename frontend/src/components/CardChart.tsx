@@ -1,76 +1,93 @@
 import { Box, Card, CardContent, Typography, useTheme } from "@mui/material";
-import { LineChart, lineElementClasses  } from "@mui/x-charts";
+import { LineChart, lineElementClasses } from "@mui/x-charts";
 
-interface DataPoint {
-    timestamp: string;
-    value: number;
+
+interface RawPoint {
+    t: string
+    v: number
+}
+
+interface ChartSeries {
+    label: string
+    data: RawPoint[]
 }
 
 interface CardChartProps {
-    actualData?: DataPoint[];
-    predictData?: DataPoint[];
-    dataContext: string;
+    heading: string
+    title: string
+    subtitle?: string
+    series: ChartSeries[]
 }
 
-export default function CardChart ({actualData, predictData, dataContext}: CardChartProps) {
+export default function CardChart({ heading, title, subtitle, series }: CardChartProps) {
     const theme = useTheme();
-    const valuesActual  = actualData?.map((point) => point.value) ?? [];
-    const valuesPredict = predictData?.map((point) => point.value) ?? [];
-    const labelsActual  = actualData?.map((point) => point.timestamp) ?? [];
-    const labelsPredict = predictData?.map((point) => point.timestamp) ?? [];
-    
+
+    const xAxisData =
+        series[0]?.data
+            ?.map(p => p.t)
+            .filter(Boolean) ?? [];
+
+    const chartSeries = series.map(s => ({
+        label: s.label,
+        data: s.data
+            .map(p => p.v)
+            .filter(v => v !== null && v !== undefined),
+        area: true,
+        showMark: false,
+        stack: "total",
+    }));
+
+    const isValid =
+        xAxisData.length > 0 &&
+        chartSeries.every(s => s.data.length === xAxisData.length);
+
     return (
         <Card
-            variant="outlined" 
-            sx={{ 
+            variant="outlined"
+            sx={{
                 flexShrink: 0,
                 background: theme.palette.background.paper,
-                height: '100%'
+                height: '100%',
+                borderRadius: '18px'
             }}
         >
             <CardContent
-                sx={{ 
-                    p: 2, pb: 2,
+                sx={{
+                    p: 2,
                     '&.MuiCardContent-root': {
                         paddingBottom: '16px',
                     },
                 }}
             >
-                <Typography variant="body1">
-                    Overview
-                </Typography>
-                <Typography variant="h4">
-                    {dataContext}
-                </Typography>
-                <Typography variant='subtitle2' color={theme.palette.text.secondary}>
-                    Last 30 days
-                </Typography>
-                {valuesActual.length > 0 ? (
+                <Typography variant="body1">{heading}</Typography>
+                <Typography variant="h4">{title}</Typography>
+
+                {subtitle && (
+                    <Typography variant="subtitle2" color={theme.palette.text.secondary}>
+                        {subtitle}
+                    </Typography>
+                )}
+
+                {isValid ? (
                     <Box>
-                        <LineChart 
-                            series={[
-                                { data: valuesActual, label: 'Actual', area: true, stack: 'Total', showMark: false },
-                                { data: valuesPredict, label: 'Predict', area: true, stack: 'Total', showMark: false}
-                            
-                            ]}
-                            xAxis={[{ scaleType: 'point', data: labelsPredict }]}
+                        <LineChart
+                            series={chartSeries}
+                            xAxis={[{ scaleType: 'point', data: xAxisData }]}
                             yAxis={[{ width: 50 }]}
+                            height={250}
                             sx={{
                                 [`& .${lineElementClasses.root}`]: {
-                                    display: 'none',
+                                display: 'none',
                                 },
                             }}
                         />
                     </Box>
-                    ) : (
-                        <Typography variant="caption" color="text.secondary">
-                            No data available
-                        </Typography>
-                    )
-            
-                }
+                ) : (
+                <Typography variant="caption" color="text.secondary">
+                    No data available
+                </Typography>
+                )}
             </CardContent>
-
         </Card>
-    )
+    );
 }
