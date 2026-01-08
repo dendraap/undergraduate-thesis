@@ -20,8 +20,8 @@ export default function SideMenuMobile({ open, toggleDrawer }: SideMenuMobilePro
             sx={{
                 zIndex: (theme) => theme.zIndex.drawer + 1,
                 [`& .${drawerClasses.paper}`]: {
-                backgroundImage: 'none',
-                backgroundColor: theme.palette.background.paper,
+                    backgroundImage: 'none',
+                    backgroundColor: theme.palette.background.paper,
                 },
             }}
         >

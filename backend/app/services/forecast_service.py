@@ -116,7 +116,22 @@ def daily_ispu(df, col):
         .dropna()
         .reset_index()
     )
+# =====================
+# DELTA PERCENTAGE
+# =====================
+def calc_delta_percent(series):
+    if len(series) < 2:
+        return None
+    prev = series[-2]
+    last = series[-1]
+    if prev == 0:
+        return None
+    return round(((last - prev) / prev) * 100, 2)
 
+
+# =====================
+# RECOMMENDATIONS
+# =====================
 def recommendations(category):
     if not isinstance(category, str):
         return ["No recommendation available"]
@@ -128,6 +143,10 @@ def recommendations(category):
         return ["Reduce outdoor activities", "Wear a mask"]
     return ["Avoid outdoor activities", "Wear a mask", "Use air purifier"]
 
+
+# =====================
+# WEATHER API BUILDER
+# =====================
 def build_weather_block(df):
     weather = {}
     for key, cfg in WEATHER_MAP.items():
@@ -136,15 +155,20 @@ def build_weather_block(df):
         s = df[cfg["col"]].dropna()
         if s.empty:
             continue
+
+        spark = s.tail(24).round(2).tolist()
         weather[key] = {
             "value": round(float(s.iloc[-1]), 2),
             "unit": cfg["unit"],
-            "sparkline": s.tail(24).round(2).tolist(),
+            "sparkline": spark,
+            "delta_percent": calc_delta_percent(spark),
+            "window": "Hour"
         }
     return weather
 
+
 # =====================
-# CORE BUILDER
+# POLLUTANT API BUILDER
 # =====================
 def build_pollutant_block(df, key):
     cfg = POLLUTANT_MAP[key]
@@ -153,20 +177,27 @@ def build_pollutant_block(df, key):
     ispu_daily = daily_ispu(df, cfg["ispu"])
     latest = ispu_daily.iloc[-1]
     category = df[cfg["category"]].dropna().iloc[-1]
-
+    ispu_spark = ispu_daily[cfg["ispu"]].tail(7).round(1).tolist()
     ispu = {
         "value": round(float(latest[cfg["ispu"]]), 1),
         "category": category,
-        "sparkline": ispu_daily[cfg["ispu"]].tail(7).round(1).tolist(),
+        "sparkline": ispu_spark,
+        "delta_percent": calc_delta_percent(ispu_spark),
+        "window": "Day"
     }
 
     # CONCENTRATION (HOURLY)
     conc = df[cfg["actual"]].dropna()
+    consentration_spark = conc.tail(24).round(2).tolist()
+
     concentration = {
         "value": round(float(conc.iloc[-1]), 2),
         "unit": cfg.get("unit", ""),
-        "sparkline": conc.tail(24).round(2).tolist(),
+        "sparkline": consentration_spark,
+        "delta_percent": calc_delta_percent(consentration_spark),
+        "window": "Hour"
     }
+
 
     # OVERVIEW (HOURLY, 30 DAYS)
     overview_df = df.tail(24 * 30)
@@ -180,24 +211,26 @@ def build_pollutant_block(df, key):
             {"t": t.isoformat(), "v": float(v)}
             for t, v in zip(overview_df["timestamp"], overview_df[cfg["pred"]])
         ],
+        "window": "Hour"
+
     }
 
     return {
         "ispu": ispu,
         "concentration": concentration,
         "overview": overview,
-        "weather": build_weather_block(df),
         "recommendations": recommendations(category),
     }
 
 # =====================
-# PUBLIC API
+# MAIN API
 # =====================
 def get_forecast(model: str):
     df = load_df()
     return {
         "model": model,
         "meta": {"generated_at": datetime.utcnow().isoformat()},
+        "weather": build_weather_block(df),
         "pollutants": {
             k: build_pollutant_block(df, k)
             for k in POLLUTANT_MAP.keys()

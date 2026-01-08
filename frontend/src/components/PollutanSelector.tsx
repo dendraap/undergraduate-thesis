@@ -1,25 +1,19 @@
 import { ToggleButton, ToggleButtonGroup, useTheme } from '@mui/material';
-
-const pollutants = ['PM2.5', 'PM10', 'SO₂', 'NO₂', 'O₃', 'CO'];
+import { POLLUTANTS } from "../constants/pollutants";
 
 interface PollutanSelectorProps {
-    selected: string;
-    setSelected: (value: string) => void;
+    selectedKey: string;
+    setSelectedKey: (key: string) => void;
 }
 
-export default function PollutanSelector({ selected, setSelected }: PollutanSelectorProps) {
-    const theme = useTheme()
-    const handleChange = (_: React.MouseEvent<HTMLElement>, newPollutant: string | null) => {
-        if (newPollutant !== null) {
-        setSelected(newPollutant);
-        }
-    };
+export default function PollutanSelector({ selectedKey, setSelectedKey }: PollutanSelectorProps) {
+    const theme = useTheme();
 
     return (
         <ToggleButtonGroup
-            value={selected}
+            value={selectedKey}
             exclusive
-            onChange={handleChange}
+            onChange={(_, key) => key && setSelectedKey(key)}
             sx={{
                 mb: 2,
                 gap: 0.5,
@@ -37,17 +31,14 @@ export default function PollutanSelector({ selected, setSelected }: PollutanSele
                     color: theme.palette.getContrastText(theme.palette.text.primary),
                 },
             }}
-
         >
-            {pollutants.map((p) => (
-                <ToggleButton 
-                    key={p} 
-                    value={p} 
-                    sx={{
-                        background: theme.palette.background.paper
-                    }}
+            {POLLUTANTS.map(p => (
+                <ToggleButton
+                    key={p.key}
+                    value={p.key}
+                    sx={{ borderRadius: '999px', px: 2.4 }}
                 >
-                    {p}
+                    {p.label}
                 </ToggleButton>
             ))}
         </ToggleButtonGroup>

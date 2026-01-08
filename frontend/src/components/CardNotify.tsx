@@ -1,21 +1,15 @@
 import { alpha, Box, Card, CardContent, Stack, Typography, useTheme } from "@mui/material";
 import PriorityHighRoundedIcon from '@mui/icons-material/PriorityHighRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
-
-interface DataPoint {
-    timestamp: string;
-    value: number;
-}
+import { useState } from "react";
 
 interface CardNotifyProps {
-    data?: DataPoint[],
+    latestValue: number | null;
 }
 
-export default function CardNotify({data}: CardNotifyProps) {
+export default function CardNotify({latestValue}: CardNotifyProps) {
     const theme = useTheme()
-    const values = data?.map((point) => point.value) ?? [];
-    const labels = data?.map((point) => point.timestamp) ?? [];
-    const lastValue= values.length > 0 ? values[values.length - 1] : null;
+    const [lastValue, setLastValue] = useState<any>(latestValue)
 
     const getIspuColor = (value: number | null) => {
         if (value === null) return theme.palette.text.secondary;
@@ -54,7 +48,8 @@ export default function CardNotify({data}: CardNotifyProps) {
             sx={{ 
                 flexShrink: 0,
                 background: alpha(ispuColor, 0.1),
-                height: '100%'
+                height: '100%',
+                borderRadius: '24px'
             }}
         >
             <CardContent
