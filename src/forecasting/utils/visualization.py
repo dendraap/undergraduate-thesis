@@ -1,5 +1,5 @@
 from src.forecasting.utils.libraries_data_handling import pd, np
-from src.forecasting.utils.libraries_plotting import plt, sd, LinearRegression, sns, norm
+from src.forecasting.utils.libraries_plotting import plt, sd, LinearRegression, sns, norm, mdates, NullLocator
 from src.forecasting.utils.memory import cleanup
 from src.forecasting.constants.enums import ColumnGroup, PeriodList
 
@@ -423,6 +423,138 @@ def seasonal_decomp(
 
     return None
 
+# Customize Xticks based on period time
+def format_xticks_detailed(
+    ax, 
+    period
+):
+    ax.xaxis.set_minor_locator(NullLocator())
+
+    if period == PeriodList.Y1:
+        locator = mdates.MonthLocator(interval=1)
+        formatter = mdates.DateFormatter('%Y-%m')
+
+    elif period == PeriodList.M6:
+        locator = mdates.MonthLocator(interval=1)
+        formatter = mdates.DateFormatter('%Y-%m')
+
+    elif period == PeriodList.M3:
+        locator = mdates.WeekdayLocator(interval=1)
+        formatter = mdates.DateFormatter('%m-%d')
+
+    elif period == PeriodList.M1:
+        locator = mdates.DayLocator(interval=3)
+        formatter = mdates.DateFormatter('%m-%d')
+
+    elif period == PeriodList.W1:
+        locator = mdates.DayLocator(interval=1)
+        formatter = mdates.DateFormatter('%A')
+
+    else:  # Daily
+        locator = mdates.HourLocator(interval=2)
+        formatter = mdates.DateFormatter('%H:%M')
+
+    ax.xaxis.set_major_locator(locator)
+    ax.xaxis.set_major_formatter(formatter)
+    ax.tick_params(axis='x', rotation=45)
+
+
+# Function to handle layout and plot seasonal decompose (multi period)
+def seasonal_decomp_plot_multi_period(
+    res_dict, 
+    period_list_all
+):
+
+    n_periods = len(period_list_all)
+
+    fig, axes = plt.subplots(
+        n_periods, 2,
+        figsize=(18, 3.4 * n_periods),
+        sharex=False
+    )
+
+    if n_periods == 1:
+        axes = np.expand_dims(axes, axis=0)
+
+    # Column titles
+    col_titles = ['Seasonal Pattern', 'Detailed Seasonal Pattern']
+    for j, title in enumerate(col_titles):
+        axes[0, j].set_title(title, fontsize=12, fontweight='bold')
+
+    for i, period in enumerate(period_list_all):
+        res = res_dict[period]
+
+        # ===== Seasonal =====
+        axes[i, 0].plot(res.seasonal, color='limegreen', linewidth=1)
+        axes[i, 0].grid(alpha=0.3)
+
+        # ===== Detailed =====
+        cut = period.value
+        seasonal_subset = res.seasonal[-cut:]
+        axes[i, 1].plot(seasonal_subset, color='red', linewidth=1)
+        axes[i, 1].grid(alpha=0.3)
+
+        # Set x-limits explicitly (IMPORTANT)
+        axes[i, 1].set_xlim(
+            seasonal_subset.index.min(),
+            seasonal_subset.index.max()
+        )
+
+        # Format xticks (time-aware)
+        format_xticks_detailed(axes[i, 1], period)
+
+        # Period label on left
+        axes[i, 0].set_ylabel(period.label(), fontsize=11, fontweight='bold')
+
+        # Hide upper x tick labels
+        if i < n_periods - 1:
+            for j in range(2):
+                plt.setp(axes[i, j].get_xticklabels(), visible=True)
+
+    plt.tight_layout(rect=[0, 0, 1, 0.97])
+    return fig, axes
+
+
+# Seasonal Decomposition Function to Visualize Seasonality Only
+def seasonal_decomp_multi_period(
+        df: pd.DataFrame,
+        col_decode: dict[str, str],
+        period_list_all: list[PeriodList],
+):
+    for col in df:
+        res_dict = {}
+
+        # Compute decomposition
+        for period in period_list_all:
+            res = sd(df[col], period=period, extrapolate_trend='freq')
+            res_dict[period] = res
+
+        # Plot
+        fig, axes = seasonal_decomp_plot_multi_period(
+            res_dict, period_list_all
+        )
+
+        # Main title
+        fig.suptitle(
+            f"Multi-Period Seasonal Decompose of {col_decode[col]}",
+            fontsize=16,
+            fontweight='bold'
+        )
+
+        # Save
+        fig.savefig(
+            f'../reports/figures/univariate_analysis/seasonal_decompose/multi_period-{col}.png',
+            dpi=300,
+            bbox_inches='tight'
+        )
+
+        plt.show()
+        plt.close(fig)
+
+        # Cleanup
+        for res in res_dict.values():
+            cleanup(res)
+        cleanup(fig, axes)
 
 # Bivariate Analysis Function to Visualize 1 Target Variable to All Exogenous Features
 def bivariate_analysis(
